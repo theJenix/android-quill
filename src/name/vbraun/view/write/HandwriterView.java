@@ -79,6 +79,11 @@ public class HandwriterView
 	protected Canvas canvas;
 	private Toast toast;
 	
+	private LinkedList<Stroke> selectedStrokes = null;
+	private LinkedList<Stroke> selectedStrokesHalo = null;
+	private float selectionDX = 0f;
+	private float selectionDY = 0f;
+	
 	private boolean palmShield = false;
 	private RectF palmShieldRect;
 	private Paint palmShieldPaint;
@@ -249,6 +254,7 @@ public class HandwriterView
 			touchHandler.destroy();
 			touchHandler = null;
 		}
+		clearSelection();
 		switch (tool) {
 		case FOUNTAINPEN:
 		case PENCIL:
@@ -257,6 +263,9 @@ public class HandwriterView
 			else
 				touchHandler = new TouchHandlerPassivePen(this);
 			toolHistory.setTool(tool);
+			break;
+		case SELECT:
+			touchHandler = new TouchHandlerSelect(this);
 			break;
 		case ARROW:
 			break;
@@ -723,6 +732,100 @@ public class HandwriterView
 			invalidate();
 			return true;
 		}
+	}
+	
+	public boolean selectStrokesIn(RectF r) {
+		boolean ping = false;
+		if (selectedStrokes == null){
+			selectedStrokes = new LinkedList<Stroke> ();
+			selectedStrokesHalo = new LinkedList<Stroke> ();
+		}
+	    for (Stroke s: page.strokes) {	
+			if (!RectF.intersects(r, s.getBoundingBox())) continue;
+			if (s.intersects(r) && !selectedStrokes.contains(s)) {
+				selectedStrokes.add(s);
+				Stroke sh = new Stroke(s);
+				sh.halofy();
+				selectedStrokesHalo.add(sh);
+				ping = true;
+			}
+		}
+		if (ping){
+			invalidate();
+		}
+		return ping;
+	}
+	
+	public void clearSelection(){
+		selectedStrokes = null;
+		selectedStrokesHalo = null;
+		selectionDX = 0f;
+		selectionDY = 0f;
+		invalidate();
+	}
+	
+	public void changeSelectionColor(int c) {
+		if (selectedStrokes == null) return;
+		LinkedList<Stroke> newSelectedStrokes = new LinkedList<Stroke> ();
+		for (Stroke s: selectedStrokes) {
+			Stroke sc = new Stroke(s);
+			sc.setPenColor(c);
+			newSelectedStrokes.add(sc);
+		}
+    	graphicsListener.onGraphicsModifyListener(page, 
+    			selectedStrokes, newSelectedStrokes);
+		selectedStrokes = newSelectedStrokes;
+		invalidate();
+	}
+	
+	public void translateSelection(float dx, float dy) {
+		if (selectedStrokesHalo == null) return;
+		for (Stroke s: selectedStrokesHalo) {
+			s.translate(dx,dy);
+		}		
+		selectionDX += dx;
+		selectionDY += dy;
+		invalidate();
+	}
+	
+	public void commitTranslateSelection() {
+		if (selectedStrokes == null) return;
+		LinkedList<Stroke> newSelectedStrokes = new LinkedList<Stroke> ();
+		for (Stroke s: selectedStrokes) {
+			Stroke sc = new Stroke(s);
+			sc.translate(selectionDX,selectionDY);
+			newSelectedStrokes.add(sc);
+		}
+    	graphicsListener.onGraphicsModifyListener(page, 
+    			selectedStrokes, newSelectedStrokes);
+		selectedStrokes = newSelectedStrokes;
+		selectionDX = 0f;
+		selectionDY = 0f;
+		invalidate();		
+	}
+	
+	public void drawSelection(Canvas canvas) {
+		if (selectedStrokesHalo == null) return;
+		RectF r = new RectF(); 
+		r.set(0,0,canvas.getWidth(), canvas.getHeight());
+		for (Stroke s: selectedStrokesHalo) {
+			s.draw(canvas, r);
+		}
+		for (Stroke s: selectedStrokes) {
+			s.draw(canvas, r);
+		}
+		invalidate();
+	}
+	
+	public boolean touchesSelection(float x, float y) {
+		if (selectedStrokes == null) return false;
+		RectF r = new RectF(); 
+		r.set(x-15f,y-15f,x+15f, y+15f);
+		for (Stroke s: selectedStrokes) {
+			if (s.intersects(r))
+				return true;
+		}		
+		return false;
 	}
 	
 	public boolean eraseLineArtIn(RectF r) {

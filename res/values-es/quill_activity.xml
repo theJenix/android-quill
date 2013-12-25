@@ -17,6 +17,7 @@
     <string name="command_clear_page">Borrar página %1$d</string>
     <string name="command_create_graphics">Añadir trazo de lápiz en la página %1$d</string>
     <string name="command_erase_graphics">Quitar trazo de lápiz de la página %1$d</string>
+    <string name="command_modify_graphics">Modifying in page %1$d</string>
     <string name="command_page_insert">Insertar número de página %1$d </string>
     <string name="command_page_erase">Eliminar número de página %1$d </string>
     <string name="tag_overlay_tags">Marcadores:</string>

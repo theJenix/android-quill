@@ -354,6 +354,9 @@ public class QuillWriterActivity
 		case R.id.toolbox_pencil:
 			setActiveTool(Tool.PENCIL);
 			break;
+		case R.id.toolbox_select:
+			setActiveTool(Tool.SELECT);
+			break;
 		case R.id.toolbox_line:
 			setActiveTool(Tool.LINE);
 			break;
@@ -394,7 +397,10 @@ public class QuillWriterActivity
 	
 	@Override
 	public void onToolboxColorListener(int color) {
-		setPenColor(color);		
+		if (mView.getToolType() == Tool.SELECT)
+			mView.changeSelectionColor(color);
+		else
+			setPenColor(color);		
 	}
 
 	@Override
@@ -420,6 +426,9 @@ public class QuillWriterActivity
     	case R.id.pencil:
     	case R.id.tools_pencil:
     		setActiveTool(Tool.PENCIL);
+    		return true;
+    	case R.id.select:
+    		setActiveTool(Tool.SELECT);
     		return true;
 		case R.id.tools_line:
 			setActiveTool(Tool.LINE);
@@ -530,11 +539,13 @@ public class QuillWriterActivity
 		updatePenHistoryIcon();
 		MenuItem item_fountainpen = mMenu.findItem(R.id.fountainpen);
 		MenuItem item_pencil      = mMenu.findItem(R.id.pencil);
+		MenuItem item_select      = mMenu.findItem(R.id.select);
 		MenuItem item_move        = mMenu.findItem(R.id.move);
 		MenuItem item_eraser      = mMenu.findItem(R.id.eraser);
 		// MenuItem item_typewriter  = mMenu.findItem(R.id.typewriter);
 		MenuItem tools_fountainpen = mMenu.findItem(R.id.tools_fountainpen);
 		MenuItem tools_pencil      = mMenu.findItem(R.id.tools_pencil);
+		MenuItem tools_select      = mMenu.findItem(R.id.tools_select);
 		MenuItem tools_line        = mMenu.findItem(R.id.tools_line);
 		MenuItem tools_move        = mMenu.findItem(R.id.tools_move);
 		MenuItem tools_eraser      = mMenu.findItem(R.id.tools_eraser);
@@ -542,6 +553,7 @@ public class QuillWriterActivity
 		MenuItem tools_typewriter  = mMenu.findItem(R.id.tools_typewriter);
 		item_fountainpen.setIcon(R.drawable.ic_menu_quill);
 		item_pencil.setIcon(R.drawable.ic_menu_pencil);
+		item_select.setIcon(R.drawable.ic_menu_select);
     	item_move.setIcon(R.drawable.ic_menu_resize);
     	item_eraser.setIcon(R.drawable.ic_menu_eraser);
     	// item_typewriter.setIcon(R.drawable.ic_menu_text);
@@ -553,6 +565,10 @@ public class QuillWriterActivity
     	case PENCIL:
     		item_pencil.setIcon(R.drawable.ic_menu_pencil_active);
     		tools_pencil.setChecked(true);
+    		return;
+    	case SELECT:
+    		item_select.setIcon(R.drawable.ic_menu_select_active);
+    		tools_select.setChecked(true);
     		return;
     	case LINE:
     		tools_line.setChecked(true);
@@ -595,11 +611,13 @@ public class QuillWriterActivity
     private void undo() {
 		UndoManager.getUndoManager().undo();
 		updateUndoRedoIcons();
+		mView.clearSelection();
     }
     
     private void redo() {
 		UndoManager.getUndoManager().redo();
 		updateUndoRedoIcons();	
+		mView.clearSelection();
     }
     
     private void switchToPage(Page page) {

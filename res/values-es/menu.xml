@@ -3,6 +3,7 @@
 
     <string name="menu_quill_pencil">Lápiz</string>
     <string name="menu_quill_fountain_pen">Pluma estilográfica</string>
+    <string name="menu_quill_select">Select</string>
     <string name="menu_quill_move">Mover / Zoom</string>
     <string name="menu_quill_eraser">Borrador</string>
     <string name="menu_quill_undo">Deshacer</string>

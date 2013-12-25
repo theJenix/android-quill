@@ -17,6 +17,7 @@
     <string name="command_clear_page">Elimina pagina %1$d</string>
     <string name="command_create_graphics">Aggiungi tratto di penna su pagina %1$d</string>
     <string name="command_erase_graphics">Elimina tratto di penna su pagina%1$d</string>
+    <string name="command_modify_graphics">Modifying in page %1$d</string>
     <string name="command_page_insert">Inserisci numero pagina %1$d </string>
     <string name="command_page_erase">Cancella numero pagina%1$d </string>
     <string name="tag_overlay_tags">Tags:</string>

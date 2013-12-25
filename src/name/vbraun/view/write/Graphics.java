@@ -19,7 +19,7 @@ public abstract class Graphics {
 	private static final String TAG = "Graphics";
 
 	public enum Tool {
-		FOUNTAINPEN, PENCIL, MOVE, ERASER, TEXT, LINE, ARROW, IMAGE
+		FOUNTAINPEN, PENCIL, MOVE, ERASER, TEXT, LINE, ARROW, IMAGE, SELECT
 	}
 
 	protected Tool tool;

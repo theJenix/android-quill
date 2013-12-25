@@ -3,6 +3,7 @@
 
     <string name="menu_quill_pencil">Bleistift</string>
     <string name="menu_quill_fountain_pen">Federhalter</string>
+    <string name="menu_quill_select">Select</string>    
     <string name="menu_quill_move">Verschieben / Zoom</string>
     <string name="menu_quill_eraser">Radieren</string>
     <string name="menu_quill_undo">Undo</string>

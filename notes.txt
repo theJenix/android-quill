@@ -10,6 +10,13 @@ Apache License 2.0
 
 Tango icon set, public domain.
 
+select icon from games_solve / oxygen
+Oxygen Icons 4.3.1 (KDE) (oxygen)
+	link: http://www.oxygen-icons.org/
+	license: Dual: CC-BY-SA 3.0 or LGPL
+	License link: http://creativecommons.org/licenses/by-sa/3.0/
+			http://creativecommons.org/licenses/LGPL/2.1/
+
 
 = "Feather" =
 

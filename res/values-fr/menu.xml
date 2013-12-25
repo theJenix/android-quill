@@ -3,6 +3,7 @@
 
     <string name="menu_quill_pencil">Pinceau</string>
     <string name="menu_quill_fountain_pen">Stylet fontaine</string>
+    <string name="menu_quill_select">Selectionner</string>
     <string name="menu_quill_move">Déplacer / Agrandir</string>
     <string name="menu_quill_eraser">Effacer</string>
     <string name="menu_quill_undo">Annuler</string>

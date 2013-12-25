@@ -61,6 +61,17 @@
         android:src="@drawable/toolbox_fountainpen" />
 
     <ImageButton
+        android:id="@+id/toolbox_select"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/toolbox_line"
+        android:layout_marginLeft="2dp"
+        android:layout_toRightOf="@+id/toolbox_text"
+        android:background="@drawable/toolbox_background"
+        android:padding="3dp"
+        android:src="@drawable/toolbox_select" />
+
+    <ImageButton
         android:id="@+id/toolbox_undo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

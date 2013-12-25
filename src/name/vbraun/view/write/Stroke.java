@@ -125,6 +125,21 @@ public class Stroke extends Graphics {
 		mPen.setStrokeCap(Paint.Cap.ROUND);
 		recompute_bounding_box = true;
 	}
+	
+	public void setPenColor(int new_pen_color) {
+		pen_color = new_pen_color;
+		mPen.setARGB(Color.alpha(pen_color), Color.red(pen_color), Color.green(pen_color), Color.blue(pen_color));
+	}
+	
+	public void setPenThickness(int new_pen_thickness) {
+		pen_thickness = new_pen_thickness;
+		recompute_bounding_box = true;
+	}
+	
+	public void halofy() {
+		// Thicken and color in green
+		setPen(pen_thickness+15, 0x7000ff00);
+	}
 
 	// static method that exports the pen scaling algorithm
 	public static float getScaledPenThickness(float scale, float pen_thickness) {
@@ -221,6 +236,13 @@ public class Stroke extends Graphics {
 			if (r.contains(position_x[i], position_y[i]))
 				return true;
 		return false;
+	}
+	
+	public void translate(float dx, float dy) { // In screen coordinates
+		for (int i = 0; i < N; i++) {
+			position_x[i] += dx/scale;
+			position_y[i] += dy/scale;
+		}
 	}
 
 	public void draw(Canvas c, RectF bounding_box) {

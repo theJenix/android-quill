@@ -17,6 +17,7 @@
     <string name="command_clear_page">Effacer page %1$d</string>
     <string name="command_create_graphics">Ajouter trait au stylet sur page %1$d</string>
     <string name="command_erase_graphics">Supprimer trait au stylet sur page %1$d</string>
+    <string name="command_modify_graphics">Modifier trait au stylet dans page %1$d</string>
     <string name="command_page_insert">Ajouter numéro page %1$d </string>
     <string name="command_page_erase">Supprimer numéro page %1$d </string>
     <string name="tag_overlay_tags">Balises :</string>

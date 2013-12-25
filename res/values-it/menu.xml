@@ -3,6 +3,7 @@
 
     <string name="menu_quill_pencil">Penna</string>
     <string name="menu_quill_fountain_pen">Stilografica</string>
+    <string name="menu_quill_select">Select</string>
     <string name="menu_quill_move">Move / Zoom</string>
     <string name="menu_quill_eraser">Cancella</string>
     <string name="menu_quill_undo">Annulla</string>

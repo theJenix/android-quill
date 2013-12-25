@@ -17,6 +17,7 @@
     <string name="command_clear_page">Seite Nummer  %1$d gelöscht</string>
     <string name="command_create_graphics">Strich auf Seite %1$d hinzugefügt</string>
     <string name="command_erase_graphics">Strich auf Seite %1$d gelöscht</string>
+    <string name="command_modify_graphics">Modifying in page %1$d</string>
     <string name="command_page_insert">Seite Nummer %1$d eingefügt</string>
     <string name="command_page_erase">Seite Nummer %1$d gelöscht</string>
     <string name="tag_overlay_tags">Tags:</string>
