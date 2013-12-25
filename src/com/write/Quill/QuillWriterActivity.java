@@ -292,7 +292,10 @@ public class QuillWriterActivity
         		}
         		@Override
         		public void onOk(AmbilWarnaDialog dialog, int color) {
-        			setPenColor(color);
+        			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+        				mView.changeSelectionColor(color);
+        			else
+        				setPenColor(color);
         		}
         	});
         return dlg.getDialog();
@@ -400,7 +403,7 @@ public class QuillWriterActivity
 	
 	@Override
 	public void onToolboxColorListener(int color) {
-		if (mView.getToolType() == Tool.SELECT)
+		if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
 			mView.changeSelectionColor(color);
 		else
 			setPenColor(color);		
