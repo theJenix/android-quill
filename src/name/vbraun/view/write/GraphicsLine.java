@@ -71,6 +71,21 @@ public class GraphicsLine extends GraphicsControlpoint {
 		recompute_bounding_box = true;
 	}
 	
+	public void setPenColor(int new_pen_color) {
+		pen_color = new_pen_color;
+		pen.setARGB(Color.alpha(pen_color), Color.red(pen_color), Color.green(pen_color), Color.blue(pen_color));
+	}
+	
+	public void setPenThickness(int new_pen_thickness) {
+		pen_thickness = new_pen_thickness;
+		recompute_bounding_box = true;
+	}
+	
+	public void halofy() {
+		// Thicken and color in green
+		setPen(pen_thickness+15, 0x7000ff00);
+	}
+
 	// this computes the argument to Paint.setStrokeWidth()
 	public float getScaledPenThickness() {
 		return Stroke.getScaledPenThickness(scale, pen_thickness);
@@ -116,6 +131,11 @@ public class GraphicsLine extends GraphicsControlpoint {
 		float yMax = Math.max(y0, y1);
 		if (yMax < rect.top) return false;
 		return true;
+	}
+
+	public void translate(float dx, float dy) { // In screen coordinates
+		p0.translate(dx, dy);
+		p1.translate(dx, dy);
 	}
 
 	@Override

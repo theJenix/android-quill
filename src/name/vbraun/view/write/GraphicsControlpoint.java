@@ -45,6 +45,10 @@ public abstract class GraphicsControlpoint extends Graphics {
 			this.y = transform.inverseY(y);
 			GraphicsControlpoint.this.controlpointMoved(this);
 		}
+		public void translate(float dx, float dy) { // In screen coordinates
+			this.x += dx/scale;
+			this.y += dy/scale;
+		}
 		public GraphicsControlpoint getGraphics() {
 			return GraphicsControlpoint.this;
 		}

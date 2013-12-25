@@ -370,7 +370,10 @@ public class QuillWriterActivity
 			setActiveTool(Tool.MOVE);
 			break;
 		case R.id.toolbox_eraser:
-			setActiveTool(Tool.ERASER);
+			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+				mView.eraseSelection();
+			else
+				setActiveTool(Tool.ERASER);
 			break;
 		case R.id.toolbox_next:
 		case R.id.toolbox_action_next:
@@ -435,7 +438,10 @@ public class QuillWriterActivity
 			return true;
     	case R.id.eraser:
     	case R.id.tools_eraser:
-    		setActiveTool(Tool.ERASER);
+			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+				mView.eraseSelection();
+			else
+				setActiveTool(Tool.ERASER);
     		return true;
     	case R.id.move:
     	case R.id.tools_move:

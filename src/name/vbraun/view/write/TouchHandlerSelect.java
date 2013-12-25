@@ -39,6 +39,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 				mRectF.sort();
 				mRectF.inset(-15, -15);
 				view.selectStrokesIn(mRectF);
+				view.selectLineArtIn(mRectF);
 				oldX = newX;
 				oldY = newY;
 				return true;
