@@ -61,7 +61,7 @@ public class GraphicsLine extends GraphicsControlpoint {
 		return p1;
 	}
 
-	void setPen(int new_pen_thickness, int new_pen_color) {
+	private void setPen(int new_pen_thickness, int new_pen_color) {
 		pen_thickness = new_pen_thickness;
 		pen_color = new_pen_color;
 		pen.setARGB(Color.alpha(pen_color), Color.red(pen_color), 
@@ -149,6 +149,9 @@ public class GraphicsLine extends GraphicsControlpoint {
 		y0 = p0.screenY();
 		y1 = p1.screenY();
 		// Log.v(TAG, "Line ("+x0+","+y0+") -> ("+x1+","+y1+"), thickness="+scaled_pen_thickness);
+
+		// On some devices, hardware acceleration prevents the caps from being drawn properly
+		// see https://code.google.com/p/android/issues/detail?id=24873
 		c.drawLine(x0, y0, x1, y1, pen);
 	}
 

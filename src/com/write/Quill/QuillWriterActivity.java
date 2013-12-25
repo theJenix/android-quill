@@ -211,6 +211,8 @@ public class QuillWriterActivity
         		public void onClick(DialogInterface dialog, int i) {
         			Toast.makeText(getApplicationContext(), 
         				dialogThickness.getItem(i), Toast.LENGTH_SHORT).show();
+        			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+        				mView.changeSelectionThickness(dialogThickness.getValue(i));
         			setPenThickness(dialogThickness.getValue(i));
         			dialog.dismiss();
         		}};
@@ -411,6 +413,8 @@ public class QuillWriterActivity
 
 	@Override
 	public void onToolboxLineThicknessListener(int thickness) {
+		if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+			mView.changeSelectionThickness(thickness);
 		setPenThickness(thickness);
 	}
   

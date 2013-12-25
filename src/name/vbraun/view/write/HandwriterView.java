@@ -792,6 +792,42 @@ public class HandwriterView
 		invalidate();
 	}
 	
+	public void changeSelectionThickness(int t) {
+		if (emptySelection()) return;
+		LinkedList<Stroke> newSelectedStrokes = new LinkedList<Stroke> ();
+		selectedStrokesHalo = new LinkedList<Stroke> ();
+		for (Stroke s: selectedStrokes) {
+			Stroke sc = new Stroke(s);
+			sc.setPenThickness(t);
+			newSelectedStrokes.add(sc);
+			Stroke sch = new Stroke(sc);
+			sch.halofy();
+			selectedStrokesHalo.add(sch);
+		}
+
+		LinkedList<GraphicsLine> newSelectedLineArt = new LinkedList<GraphicsLine> ();
+		selectedLineArtHalo = new LinkedList<GraphicsLine> ();
+		for (GraphicsLine s: selectedLineArt) {
+			GraphicsLine sc = new GraphicsLine(s);
+			sc.setPenThickness(t);
+			newSelectedLineArt.add(sc);
+			GraphicsLine sch = new GraphicsLine(sc);
+			sch.halofy();
+			selectedLineArtHalo.add(sch);
+		}
+
+		LinkedList<Graphics> gOld = new LinkedList<Graphics> (selectedStrokes);
+		gOld.addAll(selectedLineArt);
+		LinkedList<Graphics> gNew = new LinkedList<Graphics> (newSelectedStrokes);
+		gNew.addAll(newSelectedLineArt);
+		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
+    	
+		selectedStrokes = newSelectedStrokes;    	
+    	selectedLineArt = newSelectedLineArt;
+
+		invalidate();
+	}
+	
 	public void translateSelection(float dx, float dy) {
 		if (emptySelection()) return;
 		for (Stroke s: selectedStrokesHalo) {
