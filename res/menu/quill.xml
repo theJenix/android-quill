@@ -12,6 +12,14 @@
     <item android:id="@+id/next" android:titleCondensed="@string/menu_quill_next_condensed" android:title="@string/menu_quill_next" android:showAsAction="ifRoom|withText"></item>
     <item android:showAsAction="always" android:icon="@drawable/ic_pen_pencil" android:title="@string/menu_quill_prev_pen" android:id="@+id/prev_pen"></item>
     <item android:id="@+id/pen_history" android:title="@string/menu_quill_pen_history" android:visible="false"></item>
+    <item android:id="@+id/edit" android:title="@string/menu_quill_edit">
+      	<menu>
+    		<group android:id="@+id/edit_group" android:checkableBehavior="single">
+        	    <item android:id="@+id/edit_copy" android:title="@string/menu_quill_copy"></item>
+        	    <item android:id="@+id/edit_paste" android:title="@string/menu_quill_paste"></item>
+    		</group>	
+    	</menu>
+    </item>    
     <item android:id="@+id/tools" android:title="@string/menu_quill_tools">
         <menu>
     		<group android:id="@+id/tools_group" android:checkableBehavior="single">

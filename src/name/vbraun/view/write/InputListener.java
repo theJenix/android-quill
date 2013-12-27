@@ -6,4 +6,5 @@ public interface InputListener {
 	void onStrokeFinishedListener();
 	void onPickImageListener(GraphicsImage image);
 	void onEditImageListener(GraphicsImage image);
+	void onSelectionChangedListener();
 }

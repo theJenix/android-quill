@@ -15,6 +15,9 @@
     <string name="menu_quill_prev_pen">Previous pen</string>
     <string name="menu_quill_pen_history">Pen history</string>
     <string name="menu_quill_tools" >Tools</string>
+    <string name="menu_quill_edit">Edit</string>
+    <string name="menu_quill_copy">Copy</string>
+    <string name="menu_quill_paste">Paste</string>
     <string name="menu_quill_straight_line">Straight line</string>
     <string name="menu_quill_straight_line_condensed">Line</string>
     <string name="menu_quill_image">Image</string>

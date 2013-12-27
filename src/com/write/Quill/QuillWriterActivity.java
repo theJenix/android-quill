@@ -1,7 +1,5 @@
 package com.write.Quill;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.UUID;
 
@@ -45,6 +43,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -93,6 +93,7 @@ public class QuillWriterActivity
 	extends	
 		ActivityBase
 	implements 
+		ClipboardManager.OnPrimaryClipChangedListener,
 		name.vbraun.view.write.Toolbox.OnToolboxListener,
 		name.vbraun.view.write.InputListener {
 	private static final String TAG = "Quill";
@@ -158,6 +159,8 @@ public class QuillWriterActivity
         mView.setOnGraphicsModifiedListener(UndoManager.getUndoManager());
         mView.setOnToolboxListener(this);
         mView.setOnInputListener(this);
+		ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.addPrimaryClipChangedListener(this);
 
         ActionBar bar = getActionBar();
         bar.setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_SHOW_HOME);
@@ -325,6 +328,7 @@ public class QuillWriterActivity
         menu_prepare_page_has_changed();
     	updatePenHistoryIcon();
     	updateUndoRedoIcons();
+    	updateCopyPasteIcons();
     	setActionBarIconActive(mView.getToolType());
     	return true;
     }
@@ -459,6 +463,12 @@ public class QuillWriterActivity
     		return true;
     	case R.id.tools_image:
     		setActiveTool(Tool.IMAGE);
+    		return true;
+    	case R.id.edit_copy:
+    		copySelection();
+    		return true;
+    	case R.id.edit_paste:
+    		pasteSelection();
     		return true;
     	case R.id.width:
     		showDialog(DIALOG_THICKNESS);
@@ -632,7 +642,20 @@ public class QuillWriterActivity
 		updateUndoRedoIcons();	
 		mView.clearSelection();
     }
+
+    public void onPrimaryClipChanged() {
+    	updateCopyPasteIcons();
+    }
     
+    private void copySelection() {
+    	mView.copySelection(this);
+	}
+
+    private void pasteSelection() {
+    	setActiveTool(Tool.SELECT);
+    	mView.pasteSelection(this);
+	}
+
     private void switchToPage(Page page) {
     	mView.setPageAndZoomOut(page);
     	TagOverlay overlay = new TagOverlay(getApplicationContext(), 
@@ -799,6 +822,7 @@ public class QuillWriterActivity
         mView.setOnToolboxListener(this);
         mView.setOnInputListener(this);
     	updateUndoRedoIcons();
+    	updateCopyPasteIcons();
     	setKeepScreenOn();
     	mView.startInput();
     }
@@ -946,6 +970,32 @@ public class QuillWriterActivity
     	}
     }
 
+    private static final String CONTENT_URI = "content://com.write.Quill";
+	private static final Uri copyUri = Uri.parse(CONTENT_URI + "/copy");		
+
+	public boolean clipboardUsable(){
+		ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+		if(!(clipboard.hasPrimaryClip())) return false;
+		ClipData clip = clipboard.getPrimaryClip();
+		if (clip == null) return false;
+		ClipData.Item it = clip.getItemAt(0);
+		if (it == null) return false;
+		if (it.getUri() == null) return false;
+		return it.getUri().equals(copyUri);
+	}
+	
+	private void updateCopyPasteIcons() {
+    	if (mMenu==null) return;
+    	MenuItem copy = mMenu.findItem(R.id.edit_copy);
+    	if (mView.emptySelection() == copy.isEnabled()) {
+    		copy.setEnabled(!mView.emptySelection());
+    	}
+    	MenuItem paste = mMenu.findItem(R.id.edit_paste);
+    	boolean c = clipboardUsable();
+    	if (c != paste.isEnabled()) 
+    		paste.setEnabled(c);
+    }
+
 	@Override
 	public void onStrokeFinishedListener() {
 		if (!someToolsSwitchBack) return;
@@ -955,6 +1005,11 @@ public class QuillWriterActivity
 		setActiveTool(h.getTool());
 	}
 
+	@Override
+	public void onSelectionChangedListener(){
+		updateCopyPasteIcons();
+	}
+	
 	@Override
 	public void onPickImageListener(GraphicsImage image) {
     	Intent intent = new Intent(getApplicationContext(), ImageActivity.class);
