@@ -95,6 +95,7 @@ public class HandwriterView
 	private LinkedList<Stroke> selectedStrokesHalo = new LinkedList<Stroke> ();
 	private LinkedList<GraphicsLine> selectedLineArt = new LinkedList<GraphicsLine> ();
 	private LinkedList<GraphicsLine> selectedLineArtHalo = new LinkedList<GraphicsLine> ();
+	private Page selectionInPage = null;
 	private float selectionDX = 0f;
 	private float selectionDY = 0f;
 	
@@ -789,6 +790,15 @@ public class HandwriterView
 		callOnSelectionChangedListener();
 	}
 	
+	public boolean selectionInCurrentPage() {
+		return selectionInPage == getPage();
+	}
+	
+	public void startSelectionInCurrentPage() {
+		clearSelection();
+		selectionInPage = getPage();
+	}
+	
 	public void changeSelectionColor(int c) {
 		if (emptySelection()) return;
 		LinkedList<Stroke> newSelectedStrokes = new LinkedList<Stroke> ();
@@ -976,7 +986,7 @@ public class HandwriterView
 		gNew.addAll(pastedLineArt);
 		LinkedList<Graphics> gOld = new LinkedList<Graphics> ();
 		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
-		clearSelection();
+		startSelectionInCurrentPage();
 		for (Stroke s: pastedStrokes)
 			addStrokeToSelection(s);
 		for (GraphicsLine g: pastedLineArt)
@@ -987,6 +997,7 @@ public class HandwriterView
 	
 	public void drawSelection(Canvas canvas) {
 		if (emptySelection()) return;
+		if (!selectionInCurrentPage()) return;
 		RectF r = new RectF(); 
 		r.set(0,0,canvas.getWidth(), canvas.getHeight());
 		for (Stroke s: selectedStrokesHalo) {

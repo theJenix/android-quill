@@ -52,6 +52,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 				penID = event.getPointerId(0);
 				oldX = newX = event.getX();
 				oldY = newY = event.getY();
+				view.startSelectionInCurrentPage();
 				return true;
 			} else if (action == MotionEvent.ACTION_UP) { 
 				penID = -1;
@@ -67,8 +68,8 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 				penID = event.getPointerId(0);
 				oldX = newX = event.getX();
 				oldY = newY = event.getY();
-				if (! view.touchesSelection(newX, newY)) {
-					view.clearSelection();
+				if (!view.selectionInCurrentPage() || !view.touchesSelection(newX, newY)) {
+					view.startSelectionInCurrentPage();
 					mode = SelectMode.MAGICWAND;
 				}
 				return true;
