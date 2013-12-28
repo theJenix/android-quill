@@ -57,7 +57,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			} else if (action == MotionEvent.ACTION_UP) { 
 				penID = -1;
 				mode = SelectMode.MOVE;
-				view.callOnSelectionChangedListener();
+				view.selectionChanged();
 			}
 		} else if (mode == SelectMode.MOVE) {
 			if (action == MotionEvent.ACTION_DOWN) { // start move
@@ -86,7 +86,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			} else if (action == MotionEvent.ACTION_UP) { 
 				penID = -1;
 				view.commitTranslateSelection();
-				view.callOnSelectionChangedListener();
+				view.selectionChanged();
 			}
 		}
 		return false;

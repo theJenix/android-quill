@@ -92,9 +92,9 @@ public class HandwriterView
 	private Toast toast;
 	
 	private LinkedList<Stroke> selectedStrokes = new LinkedList<Stroke> ();
-	private LinkedList<Stroke> selectedStrokesHalo = new LinkedList<Stroke> ();
 	private LinkedList<GraphicsLine> selectedLineArt = new LinkedList<GraphicsLine> ();
-	private LinkedList<GraphicsLine> selectedLineArtHalo = new LinkedList<GraphicsLine> ();
+	private Bitmap selectionBitmap;
+	private Canvas selectionCanvas;
 	private Page selectionInPage = null;
 	private float selectionDX = 0f;
 	private float selectionDY = 0f;
@@ -774,16 +774,33 @@ public class HandwriterView
 			selectedStrokes.add(s);
 			Stroke sh = new Stroke(s);
 			sh.halofy();
-			selectedStrokesHalo.add(sh);
+			sh.draw(selectionCanvas, sh.getBoundingBox());
+			s.draw(selectionCanvas, s.getBoundingBox());
 		}
+	}
+	
+	public void addToSelection(Graphics graphics) {
+		if (graphics instanceof Stroke) { // most likely first
+			Stroke s = (Stroke)graphics;
+			addStrokeToSelection(s);
+		} else if (graphics instanceof GraphicsLine ) {
+			GraphicsLine l = (GraphicsLine)graphics;
+			addLineArtToSelection(l);
+		} else
+			Assert.fail("Unselectable graphics object");
+	}
+
+	public void addToSelection(LinkedList<Graphics> gl) {
+		for (Graphics g : gl)
+			addToSelection(g);
 	}
 	
 	public void clearSelection(){
 		Log.d("HandWriterView","ClearSelection!");
 		selectedStrokes = new LinkedList<Stroke> ();
-		selectedStrokesHalo = new LinkedList<Stroke> ();
 		selectedLineArt = new LinkedList<GraphicsLine> ();
-		selectedLineArtHalo = new LinkedList<GraphicsLine> ();
+		selectionBitmap = null;
+		selectionCanvas = null;
 		selectionDX = 0f;
 		selectionDY = 0f;
 		invalidate();
@@ -797,6 +814,8 @@ public class HandwriterView
 	public void startSelectionInCurrentPage() {
 		clearSelection();
 		selectionInPage = getPage();
+		selectionBitmap = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(),Bitmap.Config.ARGB_8888);
+		selectionCanvas = new Canvas(selectionBitmap);
 	}
 	
 	public void changeSelectionColor(int c) {
@@ -823,32 +842,25 @@ public class HandwriterView
     	
 		selectedStrokes = newSelectedStrokes;    	
     	selectedLineArt = newSelectedLineArt;
-
+    	selectionChanged();
+    	
 		invalidate();
 	}
 	
 	public void changeSelectionThickness(int t) {
 		if (emptySelection()) return;
 		LinkedList<Stroke> newSelectedStrokes = new LinkedList<Stroke> ();
-		selectedStrokesHalo = new LinkedList<Stroke> ();
 		for (Stroke s: selectedStrokes) {
 			Stroke sc = new Stroke(s);
 			sc.setPenThickness(t);
 			newSelectedStrokes.add(sc);
-			Stroke sch = new Stroke(sc);
-			sch.halofy();
-			selectedStrokesHalo.add(sch);
 		}
 
 		LinkedList<GraphicsLine> newSelectedLineArt = new LinkedList<GraphicsLine> ();
-		selectedLineArtHalo = new LinkedList<GraphicsLine> ();
 		for (GraphicsLine s: selectedLineArt) {
 			GraphicsLine sc = new GraphicsLine(s);
 			sc.setPenThickness(t);
 			newSelectedLineArt.add(sc);
-			GraphicsLine sch = new GraphicsLine(sc);
-			sch.halofy();
-			selectedLineArtHalo.add(sch);
 		}
 
 		LinkedList<Graphics> gOld = new LinkedList<Graphics> (selectedStrokes);
@@ -859,18 +871,13 @@ public class HandwriterView
     	
 		selectedStrokes = newSelectedStrokes;    	
     	selectedLineArt = newSelectedLineArt;
-
+    	selectionChanged();
+    	
 		invalidate();
 	}
 	
 	public void translateSelection(float dx, float dy) {
 		if (emptySelection()) return;
-		for (Stroke s: selectedStrokesHalo) {
-			s.translate(dx,dy);
-		}		
-		for (GraphicsLine s: selectedLineArtHalo) {
-			s.translate(dx,dy);
-		}		
 		selectionDX += dx;
 		selectionDY += dy;
 		invalidate();
@@ -902,6 +909,7 @@ public class HandwriterView
 		selectedLineArt = newSelectedLineArt;
 		selectionDX = 0f;
 		selectionDY = 0f;
+		selectionChanged();
 		invalidate();		
 	}
 	
@@ -991,28 +999,42 @@ public class HandwriterView
 			addStrokeToSelection(s);
 		for (GraphicsLine g: pastedLineArt)
 			addLineArtToSelection(g);
-		callOnSelectionChangedListener();
+		selectionChanged();
 		invalidate();
 	}
 	
 	public void drawSelection(Canvas canvas) {
 		if (emptySelection()) return;
 		if (!selectionInCurrentPage()) return;
+		canvas.drawBitmap(selectionBitmap, selectionDX, selectionDY, null);
+	}
+	
+	private void renderSelection() {
+		selectionBitmap = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(),Bitmap.Config.ARGB_8888);
+		selectionCanvas = new Canvas(selectionBitmap);
 		RectF r = new RectF(); 
-		r.set(0,0,canvas.getWidth(), canvas.getHeight());
-		for (Stroke s: selectedStrokesHalo) {
-			s.draw(canvas, r);
-		}
-		for (GraphicsLine s: selectedLineArtHalo) {
-			s.draw(canvas, r);
-		}
+		r.set(0,0,selectionCanvas.getWidth(), selectionCanvas.getHeight());
 		for (Stroke s: selectedStrokes) {
-			s.draw(canvas, r);
+			Stroke sh = new Stroke(s);
+			sh.halofy();
+			sh.draw(selectionCanvas, r);
 		}
 		for (GraphicsLine s: selectedLineArt) {
-			s.draw(canvas, r);
+			GraphicsLine sh = new GraphicsLine(s);
+			sh.halofy();
+			sh.draw(selectionCanvas, r);
 		}
-		invalidate();
+		for (Stroke s: selectedStrokes) {
+			s.draw(selectionCanvas, r);
+		}
+		for (GraphicsLine s: selectedLineArt) {
+			s.draw(selectionCanvas, r);
+		}
+	}
+	
+	protected void selectionChanged() {
+		renderSelection();
+		callOnSelectionChangedListener();
 	}
 	
 	public boolean touchesSelection(float x, float y) {
@@ -1068,7 +1090,8 @@ public class HandwriterView
 			selectedLineArt.add(g);
 			GraphicsLine sh = new GraphicsLine(g);
 			sh.halofy();
-			selectedLineArtHalo.add(sh);
+			sh.draw(selectionCanvas, sh.getBoundingBox());
+			g.draw(selectionCanvas, g.getBoundingBox());
 		}
 	}
 
