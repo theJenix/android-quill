@@ -1,5 +1,7 @@
 package name.vbraun.view.write;
 
+import android.graphics.Matrix;
+
 public class Transformation {
 
 	protected float offset_x;
@@ -47,6 +49,22 @@ public class Transformation {
 
 	public Transformation offset(float dx, float dy) {
 		return new Transformation(offset_x + dx, offset_y + dy, scale);
+	}
+	
+	public Matrix getMatrix() {
+		Matrix m = new Matrix();
+		m.setScale(scale, scale);
+		m.postTranslate(offset_x, offset_y);
+		return m;
+	}
+	
+	public Matrix transformMatrix(Matrix m) { //transform a screen Matrix into Graphics Matrix
+		Matrix tm = getMatrix();
+		Matrix im = new Matrix();
+		tm.invert(im);
+		tm.postConcat(m);
+		tm.postConcat(im);
+		return tm;
 	}
 
 	protected void set(Transformation t) {

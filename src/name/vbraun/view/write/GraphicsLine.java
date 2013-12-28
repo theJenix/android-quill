@@ -12,6 +12,7 @@ import junit.framework.Assert;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.Log;
@@ -136,6 +137,16 @@ public class GraphicsLine extends GraphicsControlpoint {
 	public void translate(float dx, float dy) { // In screen coordinates
 		p0.translate(dx, dy);
 		p1.translate(dx, dy);
+	}
+
+	public void applyMatrix(Matrix m) { // In screen coordinates
+		Matrix tm = transform.transformMatrix(m);
+		float points[] = {p0.x,p0.y,p1.x,p1.y};
+		tm.mapPoints(points);
+		p0.x = points[0];
+		p0.y = points[1];
+		p1.x = points[2];
+		p1.y = points[3];
 	}
 
 	@Override

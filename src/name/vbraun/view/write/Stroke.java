@@ -22,6 +22,7 @@ import junit.framework.Assert;
 
 import android.util.FloatMath;
 import android.util.Log;
+import android.graphics.Matrix;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Canvas;
@@ -242,6 +243,20 @@ public class Stroke extends Graphics {
 		for (int i = 0; i < N; i++) {
 			position_x[i] += dx/scale;
 			position_y[i] += dy/scale;
+		}
+	}
+
+	public void applyMatrix(Matrix m) { // In screen coordinates
+		Matrix tm = transform.transformMatrix(m);
+		float points[] = new float[2*N];
+		for (int i = 0; i < N; i++) {
+			points[2*i] = position_x[i];
+			points[2*i+1] = position_y[i];
+		}
+		tm.mapPoints(points);
+		for (int i = 0; i < N; i++) {
+			position_x[i] = points[2*i];
+			position_y[i] = points[2*i+1];
 		}
 	}
 

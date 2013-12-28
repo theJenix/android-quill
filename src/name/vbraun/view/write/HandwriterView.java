@@ -29,6 +29,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -95,6 +96,7 @@ public class HandwriterView
 	private LinkedList<GraphicsLine> selectedLineArt = new LinkedList<GraphicsLine> ();
 	private Bitmap selectionBitmap;
 	private Canvas selectionCanvas;
+	private Matrix selectionMatrix = new Matrix();
 	private Page selectionInPage = null;
 	private float selectionDX = 0f;
 	private float selectionDY = 0f;
@@ -803,6 +805,7 @@ public class HandwriterView
 		selectionCanvas = null;
 		selectionDX = 0f;
 		selectionDY = 0f;
+		selectionMatrix.reset();
 		invalidate();
 		callOnSelectionChangedListener();
 	}
@@ -816,6 +819,7 @@ public class HandwriterView
 		selectionInPage = getPage();
 		selectionBitmap = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(),Bitmap.Config.ARGB_8888);
 		selectionCanvas = new Canvas(selectionBitmap);
+		selectionMatrix.reset();
 	}
 	
 	public void changeSelectionColor(int c) {
@@ -880,6 +884,7 @@ public class HandwriterView
 		if (emptySelection()) return;
 		selectionDX += dx;
 		selectionDY += dy;
+		selectionMatrix.setTranslate(selectionDX, selectionDY);
 		invalidate();
 	}
 	
@@ -909,6 +914,39 @@ public class HandwriterView
 		selectedLineArt = newSelectedLineArt;
 		selectionDX = 0f;
 		selectionDY = 0f;
+		selectionMatrix.reset();
+		selectionChanged();
+		invalidate();		
+	}
+	
+	public void commitScaleRotateSelection() {
+		if (emptySelection()) return;
+		Log.v("HWView", "commitsr "+selectionMatrix.toString());
+		LinkedList<Stroke> newSelectedStrokes = new LinkedList<Stroke> ();
+		for (Stroke s: selectedStrokes) {
+			Stroke sc = new Stroke(s);
+			sc.applyMatrix(selectionMatrix);
+			newSelectedStrokes.add(sc);
+		}
+
+		LinkedList<GraphicsLine> newSelectedLineArt = new LinkedList<GraphicsLine> ();
+		for (GraphicsLine s: selectedLineArt) {
+			GraphicsLine sc = new GraphicsLine(s);
+			sc.applyMatrix(selectionMatrix);
+			newSelectedLineArt.add(sc);
+		}
+
+		LinkedList<Graphics> gOld = new LinkedList<Graphics> (selectedStrokes);
+		gOld.addAll(selectedLineArt);
+		LinkedList<Graphics> gNew = new LinkedList<Graphics> (newSelectedStrokes);
+		gNew.addAll(newSelectedLineArt);
+		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
+
+    	selectedStrokes = newSelectedStrokes;
+		selectedLineArt = newSelectedLineArt;
+		selectionDX = 0f;
+		selectionDY = 0f;
+		selectionMatrix.reset();
 		selectionChanged();
 		invalidate();		
 	}
@@ -1006,9 +1044,13 @@ public class HandwriterView
 	public void drawSelection(Canvas canvas) {
 		if (emptySelection()) return;
 		if (!selectionInCurrentPage()) return;
-		canvas.drawBitmap(selectionBitmap, selectionDX, selectionDY, null);
+		canvas.drawBitmap(selectionBitmap, selectionMatrix, null);
 	}
 	
+	public void setSelectionMatrix(Matrix m) {
+			selectionMatrix = m;
+	}
+
 	private void renderSelection() {
 		selectionBitmap = Bitmap.createBitmap(bitmap.getWidth(),bitmap.getHeight(),Bitmap.Config.ARGB_8888);
 		selectionCanvas = new Canvas(selectionBitmap);
