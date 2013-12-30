@@ -214,7 +214,7 @@ public class QuillWriterActivity
         		public void onClick(DialogInterface dialog, int i) {
         			Toast.makeText(getApplicationContext(), 
         				dialogThickness.getItem(i), Toast.LENGTH_SHORT).show();
-        			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+        			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
         				mView.changeSelectionThickness(dialogThickness.getValue(i));
         			setPenThickness(dialogThickness.getValue(i));
         			dialog.dismiss();
@@ -297,7 +297,7 @@ public class QuillWriterActivity
         		}
         		@Override
         		public void onOk(AmbilWarnaDialog dialog, int color) {
-        			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+        			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
         				mView.changeSelectionColor(color);
         			else
         				setPenColor(color);
@@ -379,7 +379,7 @@ public class QuillWriterActivity
 			setActiveTool(Tool.MOVE);
 			break;
 		case R.id.toolbox_eraser:
-			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
 				mView.eraseSelection();
 			else
 				setActiveTool(Tool.ERASER);
@@ -409,7 +409,7 @@ public class QuillWriterActivity
 	
 	@Override
 	public void onToolboxColorListener(int color) {
-		if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+		if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
 			mView.changeSelectionColor(color);
 		else
 			setPenColor(color);		
@@ -417,7 +417,7 @@ public class QuillWriterActivity
 
 	@Override
 	public void onToolboxLineThicknessListener(int thickness) {
-		if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+		if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
 			mView.changeSelectionThickness(thickness);
 		setPenThickness(thickness);
 	}
@@ -449,7 +449,7 @@ public class QuillWriterActivity
 			return true;
     	case R.id.eraser:
     	case R.id.tools_eraser:
-			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection())
+			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
 				mView.eraseSelection();
 			else
 				setActiveTool(Tool.ERASER);

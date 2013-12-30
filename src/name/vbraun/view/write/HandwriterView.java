@@ -842,7 +842,7 @@ public class HandwriterView
 		gOld.addAll(selectedLineArt);
 		LinkedList<Graphics> gNew = new LinkedList<Graphics> (newSelectedStrokes);
 		gNew.addAll(newSelectedLineArt);
-		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
+		graphicsListener.onGraphicsModifyListener(selectionInPage, gOld,gNew);
     	
 		selectedStrokes = newSelectedStrokes;    	
     	selectedLineArt = newSelectedLineArt;
@@ -871,7 +871,7 @@ public class HandwriterView
 		gOld.addAll(selectedLineArt);
 		LinkedList<Graphics> gNew = new LinkedList<Graphics> (newSelectedStrokes);
 		gNew.addAll(newSelectedLineArt);
-		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
+		graphicsListener.onGraphicsModifyListener(selectionInPage, gOld,gNew);
     	
 		selectedStrokes = newSelectedStrokes;    	
     	selectedLineArt = newSelectedLineArt;
@@ -908,7 +908,7 @@ public class HandwriterView
 		gOld.addAll(selectedLineArt);
 		LinkedList<Graphics> gNew = new LinkedList<Graphics> (newSelectedStrokes);
 		gNew.addAll(newSelectedLineArt);
-		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
+		graphicsListener.onGraphicsModifyListener(selectionInPage, gOld,gNew);
 
     	selectedStrokes = newSelectedStrokes;
 		selectedLineArt = newSelectedLineArt;
@@ -940,7 +940,7 @@ public class HandwriterView
 		gOld.addAll(selectedLineArt);
 		LinkedList<Graphics> gNew = new LinkedList<Graphics> (newSelectedStrokes);
 		gNew.addAll(newSelectedLineArt);
-		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
+		graphicsListener.onGraphicsModifyListener(selectionInPage, gOld,gNew);
 
     	selectedStrokes = newSelectedStrokes;
 		selectedLineArt = newSelectedLineArt;
@@ -957,7 +957,7 @@ public class HandwriterView
 		LinkedList<Graphics> gOld = new LinkedList<Graphics> (selectedStrokes);
 		gOld.addAll(selectedLineArt);
 		LinkedList<Graphics> gNew = new LinkedList<Graphics> ();
-		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
+		graphicsListener.onGraphicsModifyListener(selectionInPage, gOld,gNew);
 
 		clearSelection();
 		invalidate();		
