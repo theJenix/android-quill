@@ -1168,6 +1168,16 @@ public class HandwriterView
 		}
 	}
 	
+	protected void modifyGraphics(GraphicsControlpoint toRemove, GraphicsControlpoint toAdd) {
+		if (page.is_readonly) {
+			toastIsReadonly();
+			return;
+		}
+		if (page != null && graphicsListener != null) {
+			graphicsListener.onGraphicsModifyListener(page, toRemove, toAdd);
+		}
+	}
+	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (Hardware.onKeyDown(keyCode, event))	

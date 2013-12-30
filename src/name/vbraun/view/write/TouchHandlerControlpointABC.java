@@ -221,18 +221,29 @@ public abstract class TouchHandlerControlpointABC
 				getPage().draw(view.canvas);
 			    view.invalidate();
 			} else
+				activeControlpoint.getGraphics().restore();
 				removeGraphics(activeControlpoint.getGraphics());
 		} else if (gears) {
 			Assert.assertNull(newGraphicsObject); // gears are only shown with existing graphics object
+			activeControlpoint.getGraphics().restore();
 			editGraphics(activeControlpoint.getGraphics());
 		} else {
 			if (isNew)
 				saveGraphics(newGraphicsObject);
+			else
+				commitMotion();
 		}
 		newGraphicsObject = null;
 		view.callOnStrokeFinishedListener();
 	}
-		
+	
+	private void commitMotion() { // for Undo
+		GraphicsControlpoint newG = activeControlpoint.getGraphics().copyForUndo();
+		activeControlpoint.getGraphics().controlpointMoved(activeControlpoint);
+		activeControlpoint.getGraphics().restore();
+		modifyGraphics(activeControlpoint.getGraphics(),newG);
+	}
+	
 	private void abortMotion() {
 		penID = fingerId1 = fingerId2 = -1;
 		newGraphicsObject = null;
@@ -283,6 +294,13 @@ public abstract class TouchHandlerControlpointABC
 	 */
 	protected void removeGraphics(GraphicsControlpoint graphics) {
 		view.removeGraphics(graphics);
+	}
+	
+	/**
+	 * Modify the graphics from the current page
+	 */
+	protected void modifyGraphics(GraphicsControlpoint toRemove, GraphicsControlpoint toAdd) {
+		view.modifyGraphics(toRemove, toAdd);
 	}
 	
 	/**

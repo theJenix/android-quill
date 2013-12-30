@@ -56,6 +56,17 @@ public class UndoManager
 
 	@Override
 	public void onGraphicsModifyListener(Page page, 
+			Graphics toRemove,
+			Graphics toReplaceWith) {
+		Command cmd = new CommandModifyGraphics(page, toRemove, toReplaceWith);
+		undoStack.addFirst(cmd);
+		redoStack.clear();
+		limitStackSize();
+		cmd.execute();
+	}
+
+	@Override
+	public void onGraphicsModifyListener(Page page, 
 			LinkedList<? extends Graphics> toRemove,
 			LinkedList<? extends Graphics> toReplaceWith) {
 		Command cmd = new CommandModifyGraphics(page, toRemove, toReplaceWith);

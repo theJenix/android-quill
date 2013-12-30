@@ -440,6 +440,7 @@ public class Stroke extends Graphics {
 		path.cubicTo(x1 - n_x2, y1 - n_y2, x1 - n_x0, y1 - n_y0, x0 - n_x0, y0 - n_y0);
 		path.cubicTo(x0 - n_x0 - vx01, y0 - n_y0 - vy01, x0 + n_x0 - vx01, y0 + n_y0 - vy01, x0 + n_x0, y0 + n_y0);
 		c.drawPath(path, mPen);
+		Log.v(TAG, "Drawing stroke");
 	}
 
 	public void writeToStream(DataOutputStream out) throws IOException {

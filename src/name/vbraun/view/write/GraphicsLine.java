@@ -57,6 +57,10 @@ public class GraphicsLine extends GraphicsControlpoint {
 		setPen(line.pen_thickness, line.pen_color);
 	}
 
+	public GraphicsControlpoint copyForUndo() {
+	return new GraphicsLine(this);
+}
+
 	@Override
 	protected Controlpoint initialControlpoint() {
 		return p1;

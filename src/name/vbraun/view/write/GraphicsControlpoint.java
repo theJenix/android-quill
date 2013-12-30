@@ -71,6 +71,9 @@ public abstract class GraphicsControlpoint extends Graphics {
 		fillPaint = new Paint(graphics.fillPaint);
 		outlinePaint = new Paint(graphics.outlinePaint);
 	}
+
+	// Make a copy just deep enough for the undo manager
+	public abstract GraphicsControlpoint copyForUndo();
 	
 	/**
 	 * Derived classes must add their control points to this list
@@ -107,7 +110,7 @@ public abstract class GraphicsControlpoint extends Graphics {
 		ListIterator<Controlpoint> point_iter = controlpoints.listIterator();
 		ListIterator<Controlpoint> backup_iter = backupControlpoints.listIterator();
 		while (point_iter.hasNext())
-			point_iter.next().set(backup_iter.next());				
+			point_iter.next().set(backup_iter.next());			
 	}
 	
 	/**

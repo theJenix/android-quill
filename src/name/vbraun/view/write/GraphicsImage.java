@@ -150,6 +150,17 @@ public class GraphicsImage extends GraphicsControlpoint {
 	 * @param dir the directory to copy the image file to
 	 */
 	protected GraphicsImage(final GraphicsImage image, File dir) {
+		this(image);
+		if (image.getFile() == null) 
+			return;
+		uuid = null;
+		final String fileName = getImageFileName(getUuid(), image.getFileType());
+		file = new File(dir, fileName);
+		com.write.Quill.image.Util.copyfile(image.getFile(), file);
+	}
+
+	// without copying the file (e.g. for undo)
+	protected GraphicsImage(final GraphicsImage image) {
 		super(image);
 		bottom_left = new Controlpoint(image.bottom_left);
 		bottom_right = new Controlpoint(image.bottom_right);
@@ -162,14 +173,15 @@ public class GraphicsImage extends GraphicsControlpoint {
 		controlpoints.add(top_right);
 		controlpoints.add(center);
 		constrainAspect = image.constrainAspect;
+		uuid = image.getUuid();
+		file = image.getFile();
 		init();
-		if (image.getFile() == null) 
-			return;
-		final String fileName = getImageFileName(getUuid(), image.getFileType());
-		file = new File(dir, fileName);
-		com.write.Quill.image.Util.copyfile(image.getFile(), file);
 	}
 
+		public GraphicsControlpoint copyForUndo() {
+		return new GraphicsImage(this);
+	}
+	
 	private void init() {
 		paint.setARGB(0xff, 0x5f, 0xff, 0x5f);
 		paint.setStyle(Style.FILL);
@@ -209,6 +221,7 @@ public class GraphicsImage extends GraphicsControlpoint {
 			c.drawRect(rect, paint);
 			c.drawRect(rect, outline);
 		} else {
+			Log.v(TAG, "Drawing bitmap");
 			c.drawBitmap(bitmap, null, rect, null);
 		}
 	}
