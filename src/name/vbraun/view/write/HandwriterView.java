@@ -7,9 +7,14 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import com.write.Quill.R;
+import com.write.Quill.data.Book;
+import com.write.Quill.data.BookDirectory;
+import com.write.Quill.data.Bookshelf;
+import com.write.Quill.data.Storage;
 
 import name.vbraun.lib.pen.HardwareButtonListener;
 import name.vbraun.lib.pen.Hardware;
@@ -94,6 +99,7 @@ public class HandwriterView
 	
 	private LinkedList<Stroke> selectedStrokes = new LinkedList<Stroke> ();
 	private LinkedList<GraphicsLine> selectedLineArt = new LinkedList<GraphicsLine> ();
+	private LinkedList<GraphicsImage> selectedImage = new LinkedList<GraphicsImage> ();
 	private Bitmap selectionBitmap;
 	private Canvas selectionCanvas;
 	private Matrix selectionMatrix = new Matrix();
@@ -801,6 +807,7 @@ public class HandwriterView
 		Log.d("HandWriterView","ClearSelection!");
 		selectedStrokes = new LinkedList<Stroke> ();
 		selectedLineArt = new LinkedList<GraphicsLine> ();
+		selectedImage = new LinkedList<GraphicsImage> ();
 		selectionBitmap = null;
 		selectionCanvas = null;
 		selectionDX = 0f;
@@ -889,7 +896,8 @@ public class HandwriterView
 	}
 	
 	public void commitTranslateSelection() {
-		if (emptySelection()) return;
+		commitScaleRotateSelection();
+		/* if (emptySelection()) return;
 		LinkedList<Stroke> newSelectedStrokes = new LinkedList<Stroke> ();
 		for (Stroke s: selectedStrokes) {
 			Stroke sc = new Stroke(s);
@@ -916,12 +924,11 @@ public class HandwriterView
 		selectionDY = 0f;
 		selectionMatrix.reset();
 		selectionChanged();
-		invalidate();		
+		invalidate();		*/
 	}
 	
 	public void commitScaleRotateSelection() {
 		if (emptySelection()) return;
-		Log.v("HWView", "commitsr "+selectionMatrix.toString());
 		LinkedList<Stroke> newSelectedStrokes = new LinkedList<Stroke> ();
 		for (Stroke s: selectedStrokes) {
 			Stroke sc = new Stroke(s);
@@ -936,14 +943,24 @@ public class HandwriterView
 			newSelectedLineArt.add(sc);
 		}
 
+		LinkedList<GraphicsImage> newSelectedImage = new LinkedList<GraphicsImage> ();
+		for (GraphicsImage s: selectedImage) {
+			GraphicsImage sc = new GraphicsImage(s);
+			sc.applyMatrix(selectionMatrix);
+			newSelectedImage.add(sc);
+		}
+
 		LinkedList<Graphics> gOld = new LinkedList<Graphics> (selectedStrokes);
 		gOld.addAll(selectedLineArt);
+		gOld.addAll(selectedImage);
 		LinkedList<Graphics> gNew = new LinkedList<Graphics> (newSelectedStrokes);
 		gNew.addAll(newSelectedLineArt);
+		gNew.addAll(newSelectedImage);
 		graphicsListener.onGraphicsModifyListener(selectionInPage, gOld,gNew);
 
     	selectedStrokes = newSelectedStrokes;
 		selectedLineArt = newSelectedLineArt;
+		selectedImage = newSelectedImage;
 		selectionDX = 0f;
 		selectionDY = 0f;
 		selectionMatrix.reset();
@@ -956,6 +973,7 @@ public class HandwriterView
 
 		LinkedList<Graphics> gOld = new LinkedList<Graphics> (selectedStrokes);
 		gOld.addAll(selectedLineArt);
+		gOld.addAll(selectedImage);
 		LinkedList<Graphics> gNew = new LinkedList<Graphics> ();
 		graphicsListener.onGraphicsModifyListener(selectionInPage, gOld,gNew);
 
@@ -964,7 +982,7 @@ public class HandwriterView
 	}
 
 	public boolean emptySelection() {
-		return (selectedStrokes.size() + selectedLineArt.size() == 0);		
+		return (selectedStrokes.size() + selectedLineArt.size() + selectedImage.size() == 0);		
 	}
 
 	private static final String AUTHORITY = "com.write.Quill";
@@ -973,9 +991,11 @@ public class HandwriterView
 	private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 	private static final int STROKE = 1;
 	private static final int LINEART = 2;
+	private static final int IMAGE = 3;
 	static {
 	    sURIMatcher.addURI(AUTHORITY, "stroke/*", STROKE);
 	    sURIMatcher.addURI(AUTHORITY, "lineart/*", LINEART);
+	    sURIMatcher.addURI(AUTHORITY, "image/*/*", IMAGE);
 	}
 
 	public void copySelection(Context ctx) {
@@ -988,7 +1008,9 @@ public class HandwriterView
 					s.writeToStream(dos);
 					Uri u = Uri.parse(CONTENT_URI + "/stroke/"+Base64.encodeToString(baos.toByteArray(),Base64.URL_SAFE));
 					clip.addItem(new ClipData.Item(u));
-				} catch (IOException e) {}
+				} catch (IOException e) {
+					Log.e(TAG, "stroke/"+e.toString());
+				}
 		}
 		for (GraphicsLine g: selectedLineArt) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream ();
@@ -997,8 +1019,24 @@ public class HandwriterView
 					g.writeToStream(dos);
 					Uri u = Uri.parse(CONTENT_URI + "/lineart/"+Base64.encodeToString(baos.toByteArray(),Base64.URL_SAFE));
 					clip.addItem(new ClipData.Item(u));
-				} catch (IOException e) {}
+				} catch (IOException e) {
+					Log.e(TAG, "lineart/"+e.toString());
+				}
 		}
+		for (GraphicsImage g: selectedImage) {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream ();
+			DataOutputStream dos = new DataOutputStream(baos);
+				try {
+					g.writeToStream(dos);
+					Uri u = Uri.parse(CONTENT_URI + "/image/"+
+								Base64.encodeToString(g.getDir().getBytes("UTF-8"),Base64.URL_SAFE)+"/"+
+								Base64.encodeToString(baos.toByteArray(),Base64.URL_SAFE));
+					clip.addItem(new ClipData.Item(u));
+				} catch (IOException e) {
+					Log.e(TAG, "image/"+e.toString());
+				}
+		}
+		//Log.v(TAG, "The clip: "+clip.toString());
 		clipboard.setPrimaryClip(clip);
 	}
 	
@@ -1012,8 +1050,16 @@ public class HandwriterView
 		Log.d("HandWriterView","pasting, n>1");
 		LinkedList<Stroke> pastedStrokes = new LinkedList<Stroke> ();
 		LinkedList<GraphicsLine> pastedLineArt = new LinkedList<GraphicsLine> ();
+		LinkedList<GraphicsImage> pastedImage = new LinkedList<GraphicsImage> ();
+		Storage storage = Storage.getInstance();
+		File thisBookDir = null;
+		Book book = Bookshelf.getCurrentBook();
+        if (book != null)
+        	thisBookDir = storage.getBookDirectory(book.getUUID());
+
 		for (int i=1; i<n; i++) {
 			ClipData.Item it = clip.getItemAt(i);
+			Log.d("HandWriterView","uri: "+it.getUri().toString());			
 			String b64 = it.getUri().getLastPathSegment();
 			ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decode(b64, Base64.URL_SAFE));
 			DataInputStream dis = new DataInputStream(bais);
@@ -1025,11 +1071,23 @@ public class HandwriterView
 				case LINEART: 
 					pastedLineArt.add(new GraphicsLine(dis));
 					break;
+				case IMAGE:
+					List<String> lst = it.getUri().getPathSegments();
+					if (lst.size() != 3)
+						throw new IOException("Wrong number of segments in Uri");
+					File imgDir = null;
+					if (thisBookDir != null) {
+						imgDir = new File(new String(Base64.decode(lst.get(1), Base64.URL_SAFE), "UTF-8"));
+					}
+					GraphicsImage gi = new GraphicsImage(dis,imgDir);
+					pastedImage.add(new GraphicsImage(gi, thisBookDir));
+					break;
 				} 
 			}catch (IOException e) {Log.d("HandWriterView",e.toString());}
 		}
 		LinkedList<Graphics> gNew = new LinkedList<Graphics> (pastedStrokes);
 		gNew.addAll(pastedLineArt);
+		gNew.addAll(pastedImage);
 		LinkedList<Graphics> gOld = new LinkedList<Graphics> ();
 		graphicsListener.onGraphicsModifyListener(page, gOld,gNew);
 		startSelectionInCurrentPage();
@@ -1037,6 +1095,8 @@ public class HandwriterView
 			addStrokeToSelection(s);
 		for (GraphicsLine g: pastedLineArt)
 			addLineArtToSelection(g);
+		for (GraphicsImage g: pastedImage)
+			addImageToSelection(g);
 		selectionChanged();
 		invalidate();
 	}
@@ -1056,6 +1116,11 @@ public class HandwriterView
 		selectionCanvas = new Canvas(selectionBitmap);
 		RectF r = new RectF(); 
 		r.set(0,0,selectionCanvas.getWidth(), selectionCanvas.getHeight());
+		for (GraphicsImage s: selectedImage) {
+			GraphicsImage sh = new GraphicsImage(s);
+			sh.halofy();
+			sh.draw(selectionCanvas, r);
+		}
 		for (Stroke s: selectedStrokes) {
 			Stroke sh = new Stroke(s);
 			sh.halofy();
@@ -1088,6 +1153,10 @@ public class HandwriterView
 				return true;
 		}		
 		for (GraphicsLine s: selectedLineArt) {
+			if (s.intersects(r))
+				return true;
+		}		
+		for (GraphicsImage s: selectedImage) {
 			if (s.intersects(r))
 				return true;
 		}		
@@ -1134,6 +1203,33 @@ public class HandwriterView
 			sh.halofy();
 			sh.draw(selectionCanvas, sh.getBoundingBox());
 			g.draw(selectionCanvas, g.getBoundingBox());
+		}
+	}
+
+	public boolean selectImageIn(RectF r) {
+		boolean ping = false;
+	    for (GraphicsImage s: page.images) {	
+			if (!RectF.intersects(r, s.getBoundingBox())) continue;
+			Log.v(TAG, "Testing img intersection");
+			if (s.intersects(r)) {
+				Log.v(TAG, "img selected");
+				addImageToSelection(s);
+				ping = true;
+			}
+		}
+		if (ping){
+			invalidate();
+		}
+		return ping;
+	}
+
+	public void addImageToSelection(GraphicsImage g) {
+		if (!selectedImage.contains(g)) {
+			selectedImage.add(g);
+			GraphicsImage sh = new GraphicsImage(g);
+			sh.halofy();
+			sh.draw(selectionCanvas, sh.getBoundingBox());
+			//g.draw(selectionCanvas, g.getBoundingBox());
 		}
 	}
 

@@ -11,6 +11,8 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import name.vbraun.view.write.GraphicsControlpoint.Controlpoint;
+
 import com.write.Quill.artist.Artist;
 
 import junit.framework.Assert;
@@ -20,8 +22,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Matrix.ScaleToFit;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.Path;
+import android.graphics.Path.Direction;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.net.Uri;
@@ -42,6 +48,8 @@ public class GraphicsImage extends GraphicsControlpoint {
 
 	private Bitmap bitmap = null;
 	private File file = null;
+	private Matrix matrix = new Matrix();
+	private boolean halo = false;
 
 	private int height, width;
 	private float sqrtAspect;
@@ -107,6 +115,14 @@ public class GraphicsImage extends GraphicsControlpoint {
 	public File getFile() {
 		return file;
 	}
+	
+	protected Bitmap getBitmap() {
+		return bitmap;
+	}
+	
+	public Matrix getMatrix() {
+		return matrix;
+	}
 
 	public boolean getConstrainAspect() {
 		return constrainAspect;
@@ -154,9 +170,14 @@ public class GraphicsImage extends GraphicsControlpoint {
 		if (image.getFile() == null) 
 			return;
 		uuid = null;
-		final String fileName = getImageFileName(getUuid(), image.getFileType());
-		file = new File(dir, fileName);
-		com.write.Quill.image.Util.copyfile(image.getFile(), file);
+		bitmap = null; //don't recycle the bitmaps between copy/pasted images. Should we?
+		if (dir == null) 
+			file = null;
+		else { // make a copy of the image in the book directory dir
+			final String fileName = getImageFileName(getUuid(), image.getFileType());
+			file = new File(dir, fileName);
+			com.write.Quill.image.Util.copyfile(image.getFile(), file);
+		}
 	}
 
 	// without copying the file (e.g. for undo)
@@ -175,6 +196,8 @@ public class GraphicsImage extends GraphicsControlpoint {
 		constrainAspect = image.constrainAspect;
 		uuid = image.getUuid();
 		file = image.getFile();
+		bitmap = image.getBitmap();
+		matrix = new Matrix(image.matrix);
 		init();
 	}
 
@@ -194,15 +217,73 @@ public class GraphicsImage extends GraphicsControlpoint {
 		outline.setAntiAlias(true);
 		outline.setStrokeCap(Paint.Cap.ROUND);
 	}
+	
+	public void halofy() {
+		halo = true;
+	}
 
 	@Override
 	protected Controlpoint initialControlpoint() {
 		return bottom_right;
 	}
 
+	private RectF inverseRect() {
+		return inverseRect(top_left, bottom_right);
+	}
+	
+	private RectF inverseRect(Controlpoint a, Controlpoint b) {
+		float points[] = {a.x, a.y, b.x, b.y};
+		Matrix im = new Matrix();
+		if(!matrix.invert(im))
+			Log.v(TAG, "Non-invertible matrix in inverseRect");
+		im.mapPoints(points);
+		RectF r = new RectF(points[0], points[1], points[2], points[3]);
+		//r.sort();
+		return r;
+	}
+	
+	private void normalizeMatrix(){
+		RectF r = inverseRect();
+		Matrix m = new Matrix();
+		m.setRectToRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), r, ScaleToFit.FILL);
+		matrix.preConcat(m);
+	}
+	
 	@Override
 	public boolean intersects(RectF screenRect) {
+		if (screenRect.contains(center.screenX(),center.screenY())) return true;
+		float p[] = {transform.inverseX(screenRect.left), transform.inverseY(screenRect.top)};
+		Matrix im = new Matrix();
+		if(!matrix.invert(im))
+			Log.v(TAG, "Non-invertible matrix in intersects");
+		im.mapPoints(p);
+		if (inverseRect().contains(p[0],p[1])) return true; 
+		//none completely contains the other, check for edge intersections.
+		if (GraphicsLine.lineIntersectsRectF(top_left.screenX(), top_left.screenY(), top_right.screenX(), top_right.screenY(), screenRect)) return true;
+		if (GraphicsLine.lineIntersectsRectF(top_right.screenX(), top_right.screenY(), bottom_right.screenX(), bottom_right.screenY(), screenRect)) return true;
+		if (GraphicsLine.lineIntersectsRectF(bottom_right.screenX(), bottom_right.screenY(), bottom_left.screenX(), bottom_left.screenY(), screenRect)) return true;
+		if (GraphicsLine.lineIntersectsRectF(bottom_left.screenX(), bottom_left.screenY(), top_left.screenX(), top_left.screenY(), screenRect)) return true;
 		return false;
+	}
+	
+	public void applyMatrix(Matrix m) { // In screen coordinates
+		applyNativeMatrix(transform.transformMatrix(m));
+	}
+
+	private void applyNativeMatrix(Matrix m) { // In native coordinates
+		float points[] = new float[2*controlpoints.size()];
+		int i = 0;
+		for (Controlpoint p : controlpoints) {
+			points[i] = p.x; i++;
+			points[i] = p.y; i++;			
+		}
+		m.mapPoints(points);
+		i=0;
+		for (Controlpoint p : controlpoints) {
+			p.x = points[i]; i++;
+			p.y = points[i]; i++;			
+		}
+		matrix.postConcat(m);
 	}
 
 	@Override
@@ -214,15 +295,38 @@ public class GraphicsImage extends GraphicsControlpoint {
 				Log.e(TAG, "loading bitmap: "+e.getMessage());
 			}
 		
-		computeScreenRect();
+		//computeScreenRect();
 		c.clipRect(0, 0, c.getWidth(), c.getHeight(), android.graphics.Region.Op.REPLACE);
 
+		if (halo) {
+			Paint halopaint = new Paint();
+			halopaint.setStyle(Style.STROKE);
+			halopaint.setStrokeWidth(15);
+			halopaint.setAntiAlias(true);
+			halopaint.setStrokeCap(Paint.Cap.ROUND);
+			halopaint.setARGB(0x70, 0x00, 0xff, 0x00);
+			Path p = new Path();
+			p.moveTo(top_left.screenX(), top_left.screenY());
+			p.lineTo(top_right.screenX(), top_right.screenY());
+			p.lineTo(bottom_right.screenX(), bottom_right.screenY());
+			p.lineTo(bottom_left.screenX(), bottom_left.screenY());
+			p.lineTo(top_left.screenX(), top_left.screenY());
+			c.drawPath(p, halopaint);
+		}
 		if (bitmap == null) {
-			c.drawRect(rect, paint);
-			c.drawRect(rect, outline);
+			Path p = new Path();
+			p.moveTo(top_left.screenX(), top_left.screenY());
+			p.lineTo(top_right.screenX(), top_right.screenY());
+			p.lineTo(bottom_right.screenX(), bottom_right.screenY());
+			p.lineTo(bottom_left.screenX(), bottom_left.screenY());
+			p.lineTo(top_left.screenX(), top_left.screenY());
+			c.drawPath(p, paint);
+			c.drawPath(p, outline);
 		} else {
-			Log.v(TAG, "Drawing bitmap");
-			c.drawBitmap(bitmap, null, rect, null);
+			normalizeMatrix();
+			Matrix screenM = new Matrix(matrix);
+			screenM.postConcat(transform.getMatrix());
+			c.drawBitmap(bitmap, screenM, null);
 		}
 	}
 
@@ -240,6 +344,36 @@ public class GraphicsImage extends GraphicsControlpoint {
 		Assert.fail("Unreachable");
 		return null;
 	}
+	
+	private Controlpoint[] ccwFromControlpoint(Controlpoint point) {
+		Controlpoint[] pts = {top_left, bottom_left, bottom_right, top_right}; 
+		for (int i=0; i<4; i++) 
+			if (pts[i] == point) {
+				Controlpoint[] dst = new Controlpoint[4];
+				System.arraycopy(pts, i, dst, 0, 4-i);
+				System.arraycopy(pts, 0, dst, 4-i, i);
+				return dst;
+			}
+		return pts;
+	}
+	
+	private static float[] controlPointsToFloats(Controlpoint[] pts) {
+		float fts[] = new float[2*pts.length];
+		for (int i=0; i < pts.length; i++) {
+			fts[2*i] = pts[i].x;
+			fts[2*i+1] = pts[i].y;
+		}
+		return fts;
+	}
+
+	private static Controlpoint[] floatsToControlPoints(float[] fts) {
+		Controlpoint pts[] = new Controlpoint[(fts.length/2)];
+		for (int i=0; i < pts.length; i++) {
+			pts[i].x = fts[2*i];
+			pts[i].y = fts[2*i+1];
+		}
+		return pts;
+	}
 
 	private final static float minDistancePixel = 30;
 
@@ -247,16 +381,34 @@ public class GraphicsImage extends GraphicsControlpoint {
 	void controlpointMoved(Controlpoint point) {
 		super.controlpointMoved(point);
 		if (point == center) {
-			float width2 = (bottom_right.x - bottom_left.x) / 2;
+			float oldX = (top_left.x + bottom_right.x) / 2;
+			float oldY = (top_left.y + bottom_right.y) / 2;
+			Matrix m = new Matrix();
+			m.setTranslate(point.x-oldX, point.y-oldY);
+			applyNativeMatrix(m);
+			/*float width2 = (bottom_right.x - bottom_left.x) / 2;
 			float height2 = (top_right.y - bottom_right.y) / 2;
 			bottom_right.y = bottom_left.y = center.y - height2;
 			top_right.y = top_left.y = center.y + height2;
 			bottom_right.x = top_right.x = center.x + width2;
-			bottom_left.x = top_left.x = center.x - width2;
+			bottom_left.x = top_left.x = center.x - width2;*/
 		} else {
 			Controlpoint opposite = oppositeControlpoint(point);
-			float dx = opposite.x - point.x;
-			float dy = opposite.y - point.y;
+			Controlpoint[] pts = ccwFromControlpoint(point);
+			//Log.d(TAG, "point "+point.toString()+" opp "+opposite.toString());
+			RectF rr = inverseRect(pts[2], pts[0]);
+			RectF rrc = inverseRect(pts[2], center);
+			//Log.d(TAG, "rr "+rr.toString());
+			//Log.d(TAG, "rrc "+rrc.toString());
+			float oldScaling;
+			if (bitmap != null)
+				oldScaling = FloatMath.sqrt(((center.x-opposite.x)*(center.x-opposite.x) +
+                    (center.y-opposite.y)*(center.y-opposite.y)) /
+                    (rrc.height()*rrc.height() + rrc.width()*rrc.width()));
+			else
+				oldScaling = 1;
+			float dx = (rr.right-rr.left)*oldScaling;
+			float dy = (rr.bottom-rr.top)*oldScaling;
 			float minDistance = minDistancePixel / scale;
 			if (-minDistance <= dx && dx <= minDistance) {
 				float sgn = Math.signum(dx);
@@ -274,7 +426,29 @@ public class GraphicsImage extends GraphicsControlpoint {
 				dy = r / sqrtAspect * Math.signum(dy);
 				// Log.d(TAG, "move "+dx + " "+dy + " " + r + " "+(sqrtAspect*sqrtAspect));
 			}
-			rectF.bottom = opposite.y;
+			rrc = new RectF(rr.left, rr.top, rr.left+dx/oldScaling, rr.top+dy/oldScaling);
+			rrc.sort();
+			float points[] = {rrc.left, rrc.top,
+							  rrc.right, rrc.top,
+							  rrc.right,rrc.bottom,
+							  rrc.left,rrc.bottom,
+							  };
+			//Log.d(TAG, "oscaling "+oldScaling);
+			//Log.d(TAG, "points "+points[0]+" "+points[1]+" "+points[4]+" "+points[5]);
+			//Log.d(TAG, "matrix "+matrix.toString());
+			matrix.mapPoints(points);
+			top_left.x = points[0]; top_left.y = points[1];
+			top_right.x = points[2]; top_right.y = points[3];
+			bottom_right.x = points[4]; bottom_right.y = points[5];
+			bottom_left.x = points[6]; bottom_left.y = points[7];
+			center.x = (top_left.x + bottom_right.x)/2;
+			center.y = (top_left.y + bottom_right.y)/2;
+			//Log.d(TAG, "move "+dx + " "+dy);
+			//Log.d(TAG, "after "+points[0]+" "+points[1]+" "+points[4]+" "+points[5]);
+			//Log.d(TAG, "after "+top_left.toString()+" "+top_right.toString()+" "+
+			//			bottom_right.toString()+" "+bottom_left.toString());			
+			
+			/*rectF.bottom = opposite.y;
 			rectF.top = opposite.y - dy;
 			rectF.left = opposite.x;
 			rectF.right = opposite.x - dx;
@@ -284,7 +458,7 @@ public class GraphicsImage extends GraphicsControlpoint {
 			bottom_right.x = top_right.x = rectF.right;
 			bottom_left.x = top_left.x = rectF.left;
 			center.x = rectF.left + (rectF.right - rectF.left) / 2;
-			center.y = rectF.bottom + (rectF.top - rectF.bottom) / 2;
+			center.y = rectF.bottom + (rectF.top - rectF.bottom) / 2;*/
 		}
 	}
 
@@ -298,19 +472,37 @@ public class GraphicsImage extends GraphicsControlpoint {
 	}
 
 	public void writeToStream(DataOutputStream out) throws IOException {
-		out.writeInt(1);  // protocol #1
+		int protocol;
+		if (top_left.x == bottom_left.x && top_left.y == top_right.y)
+			protocol = 1;  // protocol #1
+		else
+			protocol = 2;  // protocol #2
+		out.writeInt(protocol);
 		out.writeUTF(uuid.toString());
 		out.writeFloat(top_left.x);
-		out.writeFloat(top_right.x);
+		out.writeFloat(bottom_right.x);
 		out.writeFloat(top_left.y);
-		out.writeFloat(bottom_left.y);
+		out.writeFloat(bottom_right.y);
 		out.writeBoolean(constrainAspect);
+		if (protocol == 2) {
+			float[] mValues = new float[9];
+			matrix.getValues(mValues);
+			for (int i = 0; i<9; i++)
+				out.writeFloat(mValues[i]);
+		}
+	}
+	
+	public String getDir() {
+		if (file == null)
+			return "";
+		else
+			return file.getParent();
 	}
 
 	public GraphicsImage(DataInputStream in, File dir) throws IOException {
 		super(Tool.IMAGE);
 		int version = in.readInt();
-		if (version > 1)
+		if (version > 2)
 			throw new IOException("Unknown image version!");
 
 		uuid = UUID.fromString(in.readUTF());
@@ -319,10 +511,16 @@ public class GraphicsImage extends GraphicsControlpoint {
 		float top    = in.readFloat();
 		float bottom = in.readFloat();  		
 		constrainAspect = in.readBoolean();
+		if (version == 2) {
+			float[] mValues = new float[9];
+			for (int i = 0; i<9; i++)
+				mValues[i] = in.readFloat();
+			matrix.setValues(mValues);
+		}
 		
-		bottom_left = new Controlpoint(transform, left, bottom);
 		bottom_right = new Controlpoint(transform, right, bottom);
 		top_left = new Controlpoint(transform, left, top);
+		bottom_left = new Controlpoint(transform, left, bottom);
 		top_right = new Controlpoint(transform, right, top);
 		center = new Controlpoint(transform, (left+right)/2, (top+bottom)/2);
 		controlpoints.add(bottom_left);
@@ -331,7 +529,12 @@ public class GraphicsImage extends GraphicsControlpoint {
 		controlpoints.add(top_right);
 		controlpoints.add(center);
 		init();
-		file = new File(dir, getImageFileName(uuid, FileType.FILETYPE_JPG));
+		if (dir == null)
+			file = null;
+		else
+			file = new File(dir, getImageFileName(uuid, FileType.FILETYPE_JPG));
+		if (version == 2)
+			controlpointMoved(bottom_right);
 	}
 
 	@Override

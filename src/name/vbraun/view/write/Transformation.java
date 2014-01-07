@@ -1,6 +1,7 @@
 package name.vbraun.view.write;
 
 import android.graphics.Matrix;
+import android.util.Log;
 
 public class Transformation {
 
@@ -61,7 +62,8 @@ public class Transformation {
 	public Matrix transformMatrix(Matrix m) { //transform a screen Matrix into Graphics Matrix
 		Matrix tm = getMatrix();
 		Matrix im = new Matrix();
-		tm.invert(im);
+		if(!tm.invert(im))
+			Log.v("Transformation", "Non-invertible matrix in inverseRect");
 		tm.postConcat(m);
 		tm.postConcat(im);
 		return tm;

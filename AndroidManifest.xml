@@ -115,6 +115,7 @@
         <provider
             android:name="com.write.Quill.provider.GraphicsProvider" 
  		      android:authorities="com.write.Quill" 
+ 		      android:grantUriPermissions="true"
              />
     	<uses-library android:required="false" android:name="com.sec.android.app.multiwindow" />
         <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />

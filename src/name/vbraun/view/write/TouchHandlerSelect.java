@@ -85,6 +85,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 				mRectF.inset(-15, -15);
 				view.selectStrokesIn(mRectF);
 				view.selectLineArtIn(mRectF);
+				view.selectImageIn(mRectF);
 			} else if (mode == SelectMode.MOVE) {
 				view.translateSelection(newX-oldX,newY-oldY);
 			}
