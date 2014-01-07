@@ -539,7 +539,9 @@ public class GraphicsImage extends GraphicsControlpoint {
 
 	@Override
 	public void render(Artist artist) {
-		artist.imageJpeg(file, top_left.x, top_right.x, top_left.y, bottom_left.y);
+		if (matrix.isIdentity())
+			artist.imageJpeg(file, top_left.x, top_right.x, top_left.y, bottom_left.y);
+		//Should do something here...
 	}
 
 	public boolean checkFileName(String fileName) {
