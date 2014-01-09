@@ -185,6 +185,30 @@ JNIEXPORT void JNICALL Java_org_libharu_Page_moveTextPos
 
 /*
  * Class:     org_libharu_Page
+ * Method:    gSave
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_libharu_Page_gSave
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_libharu_Page
+ * Method:    gRestore
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_libharu_Page_gRestore
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     org_libharu_Page
+ * Method:    concat
+ * Signature: (FFFFFF)V
+ */
+JNIEXPORT void JNICALL Java_org_libharu_Page_concat
+  (JNIEnv *, jobject, jfloat, jfloat, jfloat, jfloat, jfloat, jfloat);
+
+/*
+ * Class:     org_libharu_Page
  * Method:    initIDs
  * Signature: ()V
  */

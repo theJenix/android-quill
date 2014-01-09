@@ -2,6 +2,8 @@ package com.write.Quill.artist;
 
 import java.io.File;
 
+import android.graphics.Matrix;
+
 import junit.framework.Assert;
 
 /**
@@ -108,6 +110,8 @@ abstract public class Artist {
 	}
 
 	abstract public void imageJpeg(File jpgFile, float left, float right, float top, float bottom);
+
+	abstract public void imageJpeg(File jpgFile, Matrix m, float width, float height);
 	
 	abstract public void addPage(name.vbraun.view.write.Page page);
 	

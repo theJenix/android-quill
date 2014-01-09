@@ -74,7 +74,15 @@ public class Page {
 	public native void setFontAndSize(Font font, float size);
 	public native void textOut(float x, float y, String text);
 	public native void moveTextPos(float x, float y);
-		
+	
+	///////////////////////////////////////////////////////
+	/// CTM 
+	///////////////////////////////////////////////////////
+	
+	public native void gSave();
+	public native void gRestore();
+	public native void concat(float a, float b, float c, float d, float x, float y);
+	
 	///////////////////////////////////////////////////////
 	/// private stuff 
 	///////////////////////////////////////////////////////

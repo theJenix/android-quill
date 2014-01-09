@@ -20,6 +20,7 @@ import org.libharu.Page.PageSize;
 
 import junit.framework.Assert;
 
+import android.graphics.Matrix;
 import android.util.FloatMath;
 import android.util.Log;
 import android.widget.TextView.SavedState;
@@ -272,6 +273,22 @@ public class ArtistPDF
 			y0 = y1;
 		}
 		pdf.image(image, x0, y0, width, height);
+	}
+
+	public void imageJpeg(File jpgFile, Matrix matrix, float width, float height) {
+		if (jpgFile == null)
+			return;
+		Image image = doc.getImage(jpgFile.getAbsolutePath());
+		Matrix m = new Matrix(matrix);
+		m.preTranslate(0, height);
+		m.postScale(scale, scale);
+		m.postTranslate(offset_x, offset_y);
+		pdf.gSave();
+		float[] v = new float[9];
+		m.getValues(v);
+		pdf.concat(v[0], v[1], v[3], v[4], v[2], scale-v[5]+2*offset_y);
+		pdf.image(image, 0, 0, width, height);
+		pdf.gRestore();
 	}
 
 

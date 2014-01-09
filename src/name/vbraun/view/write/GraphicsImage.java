@@ -541,7 +541,8 @@ public class GraphicsImage extends GraphicsControlpoint {
 	public void render(Artist artist) {
 		if (matrix.isIdentity())
 			artist.imageJpeg(file, top_left.x, top_right.x, top_left.y, bottom_left.y);
-		//Should do something here...
+		else
+			artist.imageJpeg(file, matrix, bitmap.getWidth(), bitmap.getHeight());
 	}
 
 	public boolean checkFileName(String fileName) {

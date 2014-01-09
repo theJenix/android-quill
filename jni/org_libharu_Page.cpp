@@ -348,3 +348,45 @@ JNIEXPORT void JNICALL Java_org_libharu_Page_moveTextPos
   haru_clear_error_handler();
 }
 
+/*
+ * Class:     org_libharu_Page
+ * Method:    gSave
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_libharu_Page_gSave
+  (JNIEnv *env, jobject obj)
+{
+  haru_setup_error_handler(env, __func__);
+  HPDF_Page page = get_HPDF_Page(env, obj);
+  HPDF_Page_GSave (page);
+  haru_clear_error_handler();
+}
+
+
+/*
+ * Class:     org_libharu_Page
+ * Method:    gRestore
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_libharu_Page_gRestore
+  (JNIEnv *env, jobject obj)
+{
+  haru_setup_error_handler(env, __func__);
+  HPDF_Page page = get_HPDF_Page(env, obj);
+  HPDF_Page_GRestore (page);
+  haru_clear_error_handler();
+}
+
+/*
+ * Class:     org_libharu_Page
+ * Method:    gSave
+ * Signature: (FFFFFF)V
+ */
+JNIEXPORT void JNICALL Java_org_libharu_Page_concat
+  (JNIEnv *env, jobject obj, jfloat a, jfloat b, jfloat c, jfloat d, jfloat x, jfloat y)
+{
+  haru_setup_error_handler(env, __func__);
+  HPDF_Page page = get_HPDF_Page(env, obj);
+  HPDF_Page_Concat (page, a, b, c, d, x, y);
+  haru_clear_error_handler();
+}
