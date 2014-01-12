@@ -85,13 +85,20 @@ public class Bookshelf {
 		public void deleteFromStorage() { storage.getBookDirectory(uuid).deleteAll(); }
 	}
 	
-	public static class BookPreviewComparator implements Comparator<BookPreview> {
+	public static class BookPreviewTitleComparator implements Comparator<BookPreview> {
 		@Override
 		public int compare(BookPreview lhs, BookPreview rhs) {
 			return lhs.getTitle().compareToIgnoreCase(rhs.getTitle());
 		}
 	}
-	
+
+	public static class BookPreviewLastModifiedComparator implements Comparator<BookPreview> {
+		@Override
+		public int compare(BookPreview lhs, BookPreview rhs) {
+			return Time.compare(lhs.getLastModifiedTime(), rhs.getLastModifiedTime());
+		}
+	}
+
 	/** Return the preview associated with the given UUID
 	 * @param uuid
 	 * @return The BookPreview with matching UUID or null.
@@ -193,7 +200,8 @@ public class Bookshelf {
 	public static void sortBookPreviewList() {
 		Assert.assertNotNull(data);
 		currentBook.save();
-		Collections.sort(data, new BookPreviewComparator());
+//		Collections.sort(data, new BookPreviewComparator());
+		Collections.sort(data, Collections.reverseOrder(new BookPreviewLastModifiedComparator()));
 	}
 	
 	public static int getCount() {
