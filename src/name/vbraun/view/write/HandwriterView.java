@@ -583,7 +583,7 @@ public class HandwriterView
 			page.setTransform(0, 0, dimension);
 	}
 	
-	private void zoomFitWidth() {
+	public void zoomFitWidth() {
 		float H = canvas.getHeight();
 		float W = canvas.getWidth();
 		float dimension = W/page.aspect_ratio;
@@ -687,8 +687,11 @@ public class HandwriterView
 		}
 		
 		// return touchHandler.onTouchEvent(event);
-		touchHandler.onTouchEvent(event);
-		return true;
+		if (touchHandler.onTouchEvent(event)) {
+			return true;
+		} else {
+			return super.onTouchEvent(event);
+		}
 	}
 	
 	@Override

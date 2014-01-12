@@ -1,92 +1,54 @@
 package com.write.Quill;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.UUID;
 
-import javax.net.ssl.HandshakeCompletedListener;
-
-import sheetrock.panda.changelog.ChangeLog;
-
+import junit.framework.Assert;
 import name.vbraun.lib.help.HelpBrowser;
 import name.vbraun.lib.pen.Hardware;
 import name.vbraun.lib.pen.HideBar;
 import name.vbraun.view.write.Graphics;
+import name.vbraun.view.write.Graphics.Tool;
 import name.vbraun.view.write.GraphicsImage;
 import name.vbraun.view.write.HandwriterView;
 import name.vbraun.view.write.Page;
-import name.vbraun.view.write.ToolHistory;
 import name.vbraun.view.write.Stroke;
-import name.vbraun.view.write.Graphics.Tool;
-import name.vbraun.view.write.HandwriterView;
-import name.vbraun.view.write.ToolHistory.HistoryItem;
-
-import junit.framework.Assert;
-
-import com.write.Quill.R;
-import com.write.Quill.artist.ArtistPDF;
-import com.write.Quill.artist.PaperType;
-import com.write.Quill.data.Book;
-import com.write.Quill.data.Bookshelf;
-import com.write.Quill.data.Storage;
-import com.write.Quill.data.StorageAndroid;
-import com.write.Quill.data.Book.BookIOException;
-import com.write.Quill.export.ExportActivity;
-import com.write.Quill.image.ImageActivity;
-import com.write.Quill.thumbnail.ThumbnailActivity;
-
+import name.vbraun.view.write.ToolHistory;
+import sheetrock.panda.changelog.ChangeLog;
+import yuku.ambilwarna.AmbilWarnaDialog;
+import yuku.ambilwarna.AmbilWarnaDialog.OnAmbilWarnaListener;
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
-import android.app.ActionBar.TabListener;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.net.Uri;
-import android.os.Bundle;
-import android.util.Log;
-
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Message;
+import android.net.Uri;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
+import android.util.Log;
 import android.view.Display;
-import android.view.Gravity;
-import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ArrayAdapter;
+import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.PopupWindow;
-import android.widget.ProgressBar;
-import android.widget.SpinnerAdapter;
 import android.widget.Toast;
-import android.widget.ToggleButton;
-import yuku.ambilwarna.AmbilWarnaDialog;
-import yuku.ambilwarna.AmbilWarnaDialog.OnAmbilWarnaListener;
+
+import com.write.Quill.data.Book;
+import com.write.Quill.data.Bookshelf;
+import com.write.Quill.export.ExportActivity;
+import com.write.Quill.image.ImageActivity;
+import com.write.Quill.thumbnail.ThumbnailActivity;
+import com.write.Quill.util.SystemUiHider;
+import com.write.Quill.util.SystemUiHider.OnVisibilityChangeListener;
 
 
 public class QuillWriterActivity 
@@ -113,6 +75,20 @@ public class QuillWriterActivity
     private boolean someToolsSwitchBack;
     private boolean hideSystembar;
 
+    /**
+     * The flags to pass to {@link SystemUiHider#getInstance}.
+     */
+    private static final int HIDER_FLAGS = SystemUiHider.FLAG_HIDE_NAVIGATION;
+
+    /**
+     * If set, will toggle the system UI visibility upon interaction. Otherwise,
+     * will show the system UI visibility upon interaction.
+     */
+    private static final boolean TOGGLE_ON_CLICK = false;
+
+
+	private SystemUiHider mSystemUiHider;
+
     private static final DialogThickness dialogThickness = new DialogThickness();
     private static final DialogAspectRatio dialogAspectRatio = new DialogAspectRatio();
     private static final DialogBackground dialogPaperType = new DialogBackground();
@@ -131,6 +107,7 @@ public class QuillWriterActivity
         editor.commit();
     }
     
+    @SuppressLint("NewApi")
     @Override 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -169,6 +146,44 @@ public class QuillWriterActivity
         if (w>=800) {
         	createTagButton(bar);
         }
+
+//        mView.setClickable(true);
+        // Set up an instance of SystemUiHider to control the system UI for
+        // this activity.
+        mSystemUiHider = SystemUiHider.getInstance(this, mView,
+                HIDER_FLAGS);
+        mSystemUiHider.setup();
+
+//        // Set up the user interaction to manually show or hide the system UI.
+        mView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (TOGGLE_ON_CLICK) {
+                    mSystemUiHider.toggle();
+                } else {
+                    mSystemUiHider.show();
+                }
+            }
+        });
+        
+        mSystemUiHider.setOnVisibilityChangeListener(new OnVisibilityChangeListener() {
+			
+			@Override
+			public void onVisibilityChange(boolean visible) {
+				//TODO: on visibility change, we need to resize the HandwriterView and zoom the page.
+//				mView.setY(visible ? getActionBar().getHeight() : 0);
+//				mView.set
+			}
+		});
+//
+//        mView.setOnLongClickListener(new View.OnLongClickListener() {
+//			
+//			@Override
+//			public boolean onLongClick(View v) {
+//				// TODO Auto-generated method stub
+//				return false;
+//			}
+//		});
     	switchToPage(book.currentPage());
     	setKeepScreenOn();
     	UndoManager.setApplication(this);
@@ -185,7 +200,6 @@ public class QuillWriterActivity
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
-    
     private void createTagButton(ActionBar bar) {
         tagButton = new Button(this);
         tagButton.setText(R.string.tag_button);
@@ -258,8 +272,28 @@ public class QuillWriterActivity
     }
     
     
+	@Override
+	public void onUserInteraction() {
+//		mSystemUiHider.toggle();
+		super.onUserInteraction();
+	}
 
-    // The HandWriterView is not focusable and therefore does not receive KeyEvents
+	@SuppressLint("NewApi")
+    @Override
+	public boolean dispatchGenericMotionEvent(MotionEvent event) {
+		int action = event.getActionIndex();
+		int keyCode = event.getActionMasked();
+		Log.v(TAG, "MotionEvent "+action+" "+keyCode);
+		if (keyCode == MotionEvent.ACTION_HOVER_ENTER) {
+			//TODO: * 2 is a hack...should instead track that the pen is headed towards the action bar
+			if (mSystemUiHider.isVisible() && event.getAxisValue(MotionEvent.AXIS_Y) > getActionBar().getHeight() * 2) {
+				mSystemUiHider.hide();
+			}
+		}
+		return super.dispatchGenericMotionEvent(event);
+	}
+	
+	// The HandWriterView is not focusable and therefore does not receive KeyEvents
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
 		int action = event.getAction();
@@ -278,6 +312,9 @@ public class QuillWriterActivity
 				flip_page_prev();
 			}
 			return true;
+		case 238: //hover event
+//			if (action == KeyEvent.ACTION_DOWN) {
+//			}
 		default:
 			return super.dispatchKeyEvent(event);
 		}

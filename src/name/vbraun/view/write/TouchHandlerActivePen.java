@@ -125,7 +125,7 @@ public class TouchHandlerActivePen
 			}
 			// Log.v(TAG, "ACTION_DOWN");
 			if (!useForWriting(event)) 
-				return true;   // eat non-pen events
+				return false;   // eat non-pen events
 			position_x[0] = newX = event.getX();
 			position_y[0] = newY = event.getY();
 			pressure[0] = newPressure = event.getPressure();
@@ -137,11 +137,13 @@ public class TouchHandlerActivePen
 		else if (action == MotionEvent.ACTION_UP) {
 			Assert.assertTrue(event.getPointerCount() == 1);
 			int id = event.getPointerId(0);
+			boolean handled = false;
 			if (id == penID) {
 				// Log.v(TAG, "ACTION_UP: Got "+N+" points.");
 				saveStroke();
 				N = 0;
 				view.callOnStrokeFinishedListener();
+				handled = true;
 			} else if (getMoveGestureWhileWriting() && 
 						(id == fingerId1 || id == fingerId2) &&
 						fingerId1 != -1 && fingerId2 != -1) {
@@ -151,9 +153,13 @@ public class TouchHandlerActivePen
 				page.setTransform(t, view.canvas);
 				page.draw(view.canvas);
 				view.invalidate();
+				handled = true;
 			}
-			penID = fingerId1 = fingerId2 = -1;
-			return true;
+			try {
+				return handled;
+			} finally {
+				penID = fingerId1 = fingerId2 = -1;
+			}
 		}
 		else if (action == MotionEvent.ACTION_CANCEL) {
 			// e.g. you start with finger and use pen
