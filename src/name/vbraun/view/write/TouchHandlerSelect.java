@@ -1,9 +1,13 @@
 package name.vbraun.view.write;
 
+import name.vbraun.view.write.Graphics.Tool;
+import name.vbraun.view.write.HandwriterView.SelectMode;
 import junit.framework.Assert;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.FloatMath;
 import android.util.Log;
@@ -18,14 +22,10 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 	private float oldX1, oldY1, oldX2, oldY2;
 	private float newX1, newY1, newX2, newY2;
 	private final RectF mRectF = new RectF();
-	public enum SelectMode {
-		MAGICWAND, MOVE
-	}
-	SelectMode mode;
 
 	protected TouchHandlerSelect(HandwriterView view) {
 		super(view);
-		mode = SelectMode.MAGICWAND;
+		view.setSelectMode(SelectMode.SELECT);
 	}	
 
 	@Override
@@ -40,6 +40,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 
 	@Override
 	protected boolean onTouchEvent(MotionEvent event) {
+		SelectMode mode = view.getSelectMode();
 		int action = event.getActionMasked();
 		if (action == MotionEvent.ACTION_MOVE) {
 			if (getMoveGestureWhileWriting() && fingerId1 != -1 && fingerId2 == -1) {
@@ -57,7 +58,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 				newX1 = event.getX(idx1);
 				newY1 = event.getY(idx1);
 				newX2 = event.getX(idx2);
-				newY2 = event.getY(idx2);		
+				newY2 = event.getY(idx2);
 				if (mode == SelectMode.MOVE) {
 					//Log.v("TouchHandlerSelect", "ACTION_MOVE old "+mode+" "+fingerId2+" + "+fingerId1+" "+oldX1+" "+oldY1+" "+oldX2+" "+oldY2);
 					//Log.v("TouchHandlerSelect", "ACTION_MOVE new "+mode+" "+fingerId2+" + "+fingerId1+" "+newX1+" "+newY1+" "+newX2+" "+newY2);
@@ -79,23 +80,29 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			newX = event.getX(idx);
 			newY = event.getY(idx);
 
-			if (mode == SelectMode.MAGICWAND) {
+			if (mode == SelectMode.SELECT) {
 				mRectF.set(oldX, oldY, newX, newY);
 				mRectF.sort();
-				mRectF.inset(-15, -15);
-				view.selectStrokesIn(mRectF);
-				view.selectLineArtIn(mRectF);
-				view.selectImageIn(mRectF);
+				if (view.getSelectTool() != Tool.SELECT_RECT)
+					mRectF.inset(-15, -15);
+				view.selectIn(mRectF);
+				if (view.getSelectTool() == Tool.SELECT_RECT) {
+					view.filterSelection(mRectF);
+				}
 			} else if (mode == SelectMode.MOVE) {
 				view.translateSelection(newX-oldX,newY-oldY);
 			}
-
-			oldX = newX;
-			oldY = newY;
+			
+			if (mode == SelectMode.MOVE || view.getSelectTool() != Tool.SELECT_RECT) {
+				oldX = newX;
+				oldY = newY;
+			}
 			return true;				
 		} else if (action == MotionEvent.ACTION_DOWN) {  // start move
-			if (!view.emptySelection())
+			if (!view.emptySelection()) {
+				view.setSelectMode(SelectMode.MOVE);
 				mode = SelectMode.MOVE;
+			}
 			if (view.isOnPalmShield(event)) 
 				return true;
 			if (getMoveGestureWhileWriting() && useForTouch(event) && event.getPointerCount()==1) {
@@ -110,12 +117,13 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			oldX = newX = event.getX();
 			oldY = newY = event.getY();
 
-			if (mode == SelectMode.MAGICWAND) {
+			if (mode == SelectMode.SELECT) {
 				view.startSelectionInCurrentPage();
 			} else if (mode == SelectMode.MOVE) {
 				if (!view.selectionInCurrentPage() || !view.touchesSelection(newX, newY)) {
 					view.startSelectionInCurrentPage();
-					mode = SelectMode.MAGICWAND;
+					view.setSelectMode(SelectMode.SELECT);
+					mode = SelectMode.SELECT;
 				}
 			}
 			//Log.v("TouchHandlerSelect", "ACTION_DOWN "+mode+" "+fingerId2+" + "+fingerId1+" "+oldX1+" "+oldY1+" "+oldX2+" "+oldY2);
@@ -124,10 +132,12 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			Assert.assertTrue(event.getPointerCount() == 1);
 			int id = event.getPointerId(0);
 			if (id == penID) {
-				if (mode == SelectMode.MAGICWAND) {
+				if (mode == SelectMode.SELECT) {
 					penID = -1;
-					if (!view.emptySelection())
+					if (!view.emptySelection()) {
+						view.setSelectMode(SelectMode.MOVE);
 						mode = SelectMode.MOVE;
+					}
 					view.selectionChanged();
 				} else if (mode == SelectMode.MOVE) {
 					penID = -1;
@@ -137,7 +147,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			} else if (getMoveGestureWhileWriting() && 
 						(id == fingerId1 || id == fingerId2) &&
 						fingerId1 != -1 && fingerId2 != -1) {
-				if (mode == SelectMode.MAGICWAND) {	
+				if (mode == SelectMode.SELECT) {	
 					Page page = getPage();
 					Transformation t = pinchZoomTransform(page.getTransform(), 
 							oldX1, newX1, oldX2, newX2, oldY1, newY1, oldY2, newY2);
@@ -157,7 +167,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			// if (event.getPointerId(0) != penID) return true;
 			// Log.v("TouchHandlerSelect", "ACTION_CANCEL");
 			penID = fingerId1 = fingerId2 = -1;
-			if (mode == SelectMode.MAGICWAND)
+			if (mode == SelectMode.SELECT)
 				getPage().draw(view.canvas);
 			else if (mode == SelectMode.MOVE)
 				view.setSelectionMatrix(new Matrix());
@@ -183,11 +193,20 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 
 	@Override
 	protected void draw(Canvas canvas, Bitmap bitmap) {
-		if (fingerId2 != -1 && mode == SelectMode.MAGICWAND) {
+		if (fingerId2 != -1 && view.getSelectMode() == SelectMode.SELECT) {
 			drawPinchZoomPreview(canvas, bitmap, oldX1, newX1, oldX2, newX2, oldY1, newY1, oldY2, newY2);
 		} else {
 			canvas.drawBitmap(bitmap, 0, 0, null);
 			view.drawSelection(canvas);
+			if (view.getSelectTool() == Tool.SELECT_RECT && 
+					mRectF != null && view.selectionInCurrentPage() && penID != -1) {
+				Paint p = new Paint();
+				p.setStyle(Paint.Style.STROKE);
+				float[] dash = {5,5}; 
+				p.setPathEffect(new DashPathEffect(dash, 0));
+				canvas.drawRect(mRectF, p);
+				view.invalidate();
+			}
 		}
 	}
 

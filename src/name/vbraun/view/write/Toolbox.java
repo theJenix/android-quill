@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -65,6 +66,10 @@ public class Toolbox
 	protected ImageButton undoButton, redoButton;
 	protected ImageButton fountainpenButton, pencilButton, lineButton;
 	protected ImageButton selectButton;
+	protected Drawable selectFreeDrawable;
+	protected Drawable selectRectDrawable;
+	protected Drawable selectWandDrawable;
+	protected Drawable selectMoveDrawable;
 	protected ImageButton resizeButton;
 	protected ImageButton eraserButton;	
 	protected ImageButton textButton, photoButton;
@@ -105,6 +110,10 @@ public class Toolbox
         	View.inflate(context, R.layout.toolbox, this);
         else      
         	View.inflate(context, R.layout.toolbox_right, this);
+        selectRectDrawable = getResources().getDrawable(R.drawable.toolbox_select_rect);
+        selectFreeDrawable = getResources().getDrawable(R.drawable.toolbox_select_free);
+        selectWandDrawable = getResources().getDrawable(R.drawable.toolbox_select_wand);
+        selectMoveDrawable = getResources().getDrawable(R.drawable.toolbox_select_move);
 		redButton    = (ImageButton) findViewById(R.id.toolbox_redbutton);
 		undoButton   = (ImageButton) findViewById(R.id.toolbox_undo);
 		redoButton   = (ImageButton) findViewById(R.id.toolbox_redo);
@@ -240,7 +249,10 @@ public class Toolbox
 			return fountainpenButton;
 		case PENCIL:
 			return pencilButton;
-		case SELECT:
+		case SELECT_WAND:
+		case SELECT_RECT:
+		case SELECT_FREE:
+		case SELECT_MOVE:
 			return selectButton;
 		case MOVE:
 			return resizeButton;
@@ -282,6 +294,14 @@ public class Toolbox
 	private Graphics.Tool previousTool;
 
  	public void setActiveTool(Tool tool) {
+ 		if (tool == Tool.SELECT_FREE)
+ 			selectButton.setImageDrawable(selectFreeDrawable);
+ 		if (tool == Tool.SELECT_WAND)
+ 			selectButton.setImageDrawable(selectWandDrawable);
+ 		if (tool == Tool.SELECT_RECT)
+ 			selectButton.setImageDrawable(selectRectDrawable);
+ 		if (tool == Tool.SELECT_MOVE)
+ 			selectButton.setImageDrawable(selectMoveDrawable);
  		setIconActive(previousTool, false);
 		setIconActive(tool, true);
 		previousTool = tool;

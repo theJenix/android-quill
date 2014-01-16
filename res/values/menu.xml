@@ -4,6 +4,9 @@
     <string name="menu_quill_pencil">Pencil</string>
     <string name="menu_quill_fountain_pen">Fountain Pen</string>
     <string name="menu_quill_select">Select</string>
+    <string name="menu_quill_select_wand">Wand select</string>
+    <string name="menu_quill_select_free">Lasso select</string>
+    <string name="menu_quill_select_rect">Rectangle select</string>
     <string name="menu_quill_move">Move / Zoom</string>
     <string name="menu_quill_eraser">Erase</string>
     <string name="menu_quill_undo">Undo</string>

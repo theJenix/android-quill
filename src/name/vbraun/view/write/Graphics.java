@@ -19,7 +19,14 @@ public abstract class Graphics {
 	private static final String TAG = "Graphics";
 
 	public enum Tool {
-		FOUNTAINPEN, PENCIL, MOVE, ERASER, TEXT, LINE, ARROW, IMAGE, SELECT
+		FOUNTAINPEN, PENCIL, MOVE, ERASER, TEXT, LINE, ARROW, IMAGE, SELECT_WAND, SELECT_RECT, SELECT_FREE, SELECT_MOVE
+	}
+	
+	public static boolean isSelectTool(Tool tool) {
+		return (tool == Tool.SELECT_RECT) || 
+				(tool == Tool.SELECT_FREE) || 
+				(tool == Tool.SELECT_WAND) ||
+				(tool == Tool.SELECT_MOVE);
 	}
 
 	protected Tool tool;

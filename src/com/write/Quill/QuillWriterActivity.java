@@ -13,6 +13,7 @@ import name.vbraun.lib.pen.HideBar;
 import name.vbraun.view.write.Graphics;
 import name.vbraun.view.write.GraphicsImage;
 import name.vbraun.view.write.HandwriterView;
+import name.vbraun.view.write.HandwriterView.SelectMode;
 import name.vbraun.view.write.Page;
 import name.vbraun.view.write.ToolHistory;
 import name.vbraun.view.write.Stroke;
@@ -70,6 +71,7 @@ import android.view.MenuItem;
 import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.view.View.OnClickListener;
@@ -78,6 +80,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
@@ -109,6 +112,8 @@ public class QuillWriterActivity
     private Menu mMenu;
     private Toast mToast;
     private Button tagButton;
+    private MenuItem selectItem = null;
+    private View selectActionView = null;
     
     private boolean volumeKeyNavigation;
     private boolean someToolsSwitchBack;
@@ -214,7 +219,7 @@ public class QuillWriterActivity
         		public void onClick(DialogInterface dialog, int i) {
         			Toast.makeText(getApplicationContext(), 
         				dialogThickness.getItem(i), Toast.LENGTH_SHORT).show();
-        			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
+        			if (Graphics.isSelectTool(mView.getToolType()) && !mView.emptySelection() && mView.selectionInCurrentPage())
         				mView.changeSelectionThickness(dialogThickness.getValue(i));
         			setPenThickness(dialogThickness.getValue(i));
         			dialog.dismiss();
@@ -297,7 +302,7 @@ public class QuillWriterActivity
         		}
         		@Override
         		public void onOk(AmbilWarnaDialog dialog, int color) {
-        			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
+        			if (Graphics.isSelectTool(mView.getToolType()) && !mView.emptySelection() && mView.selectionInCurrentPage())
         				mView.changeSelectionColor(color);
         			else
         				setPenColor(color);
@@ -311,6 +316,26 @@ public class QuillWriterActivity
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.quill, menu);
         mMenu = menu;        
+        
+        selectItem = menu.findItem(R.id.select);
+        selectActionView = selectItem.getActionView();
+        selectActionView.setOnLongClickListener(new OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {   
+            	selectItem.setActionView(null);
+                mMenu.performIdentifierAction(selectItem.getItemId(), 0); 
+            	selectItem.setActionView(selectActionView);
+                return true;
+            }
+        });
+        selectActionView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {   
+                setActiveTool(mView.getSelectTool()); 
+            }
+        });
+        
+        
         if (!Hardware.hasPressureSensor()) {
         	MenuItem fountainPen = mMenu.findItem(R.id.fountainpen);
         	fountainPen.setVisible(false);
@@ -364,7 +389,7 @@ public class QuillWriterActivity
 			setActiveTool(Tool.PENCIL);
 			break;
 		case R.id.toolbox_select:
-			setActiveTool(Tool.SELECT);
+			setActiveTool(mView.getSelectTool());
 			break;
 		case R.id.toolbox_line:
 			setActiveTool(Tool.LINE);
@@ -379,7 +404,7 @@ public class QuillWriterActivity
 			setActiveTool(Tool.MOVE);
 			break;
 		case R.id.toolbox_eraser:
-			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
+			if (Graphics.isSelectTool(mView.getToolType()) && !mView.emptySelection() && mView.selectionInCurrentPage())
 				mView.eraseSelection();
 			else
 				setActiveTool(Tool.ERASER);
@@ -409,7 +434,7 @@ public class QuillWriterActivity
 	
 	@Override
 	public void onToolboxColorListener(int color) {
-		if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
+		if (Graphics.isSelectTool(mView.getToolType()) && !mView.emptySelection() && mView.selectionInCurrentPage())
 			mView.changeSelectionColor(color);
 		else
 			setPenColor(color);		
@@ -417,7 +442,7 @@ public class QuillWriterActivity
 
 	@Override
 	public void onToolboxLineThicknessListener(int thickness) {
-		if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
+		if (Graphics.isSelectTool(mView.getToolType()) && !mView.emptySelection() && mView.selectionInCurrentPage())
 			mView.changeSelectionThickness(thickness);
 		setPenThickness(thickness);
 	}
@@ -442,14 +467,26 @@ public class QuillWriterActivity
     		setActiveTool(Tool.PENCIL);
     		return true;
     	case R.id.select:
-    		setActiveTool(Tool.SELECT);
+    		setActiveTool(mView.getSelectTool());
+    		return true;
+    	case R.id.select_wand:
+    		mView.setSelectTool(Tool.SELECT_WAND);
+    		setActiveTool(Tool.SELECT_WAND);
+    		return true;
+    	case R.id.select_free:
+    		mView.setSelectTool(Tool.SELECT_FREE);
+    		setActiveTool(Tool.SELECT_FREE);
+    		return true;
+    	case R.id.select_rect:
+    		mView.setSelectTool(Tool.SELECT_RECT);
+    		setActiveTool(Tool.SELECT_RECT);
     		return true;
 		case R.id.tools_line:
 			setActiveTool(Tool.LINE);
 			return true;
     	case R.id.eraser:
     	case R.id.tools_eraser:
-			if (mView.getToolType() == Tool.SELECT && !mView.emptySelection() && mView.selectionInCurrentPage())
+			if (Graphics.isSelectTool(mView.getToolType()) && !mView.emptySelection() && mView.selectionInCurrentPage())
 				mView.eraseSelection();
 			else
 				setActiveTool(Tool.ERASER);
@@ -547,7 +584,7 @@ public class QuillWriterActivity
     		return super.onOptionsItemSelected(item);
     	}
     }
-
+    
     ///////////////////////////////////////////////////////////////////////////////
     // Actual implementations of actions
     ///////////////////////////////////////////////////////////////////////////////
@@ -557,6 +594,34 @@ public class QuillWriterActivity
 		setActionBarIconActive(tool);
 	}
 
+	private int toolIcon (Tool tool) {
+    	switch (tool) {
+    	case FOUNTAINPEN:
+    		return R.drawable.ic_menu_quill;
+    	case PENCIL:
+    		return R.drawable.ic_menu_pencil;
+    	case SELECT_WAND:
+    		return R.drawable.ic_menu_select;
+    	case SELECT_FREE:
+    		return R.drawable.ic_tool_free_select;
+    	case SELECT_RECT:
+    		return R.drawable.ic_tool_rect_select;
+    	case SELECT_MOVE:
+    		return R.drawable.ic_tool_move_select;
+    	case LINE:
+    		return R.drawable.ic_menu_line;
+    	case MOVE:
+    		return R.drawable.ic_menu_resize;
+    	case ERASER:
+    		return R.drawable.ic_menu_eraser;
+    	case IMAGE:
+    		return R.drawable.ic_menu_photo;
+    	case TEXT:
+    		return R.drawable.ic_menu_text;
+    	}		
+		return 0;
+	}
+	
     protected void setActionBarIconActive(Tool tool) {
     	if (mMenu == null || tool == null) return;
 		updatePenHistoryIcon();
@@ -576,7 +641,8 @@ public class QuillWriterActivity
 		MenuItem tools_typewriter  = mMenu.findItem(R.id.tools_typewriter);
 		item_fountainpen.setIcon(R.drawable.ic_menu_quill);
 		item_pencil.setIcon(R.drawable.ic_menu_pencil);
-		item_select.setIcon(R.drawable.ic_menu_select);
+		item_select.setIcon(toolIcon(mView.getSelectTool()));
+		((ImageView)selectActionView).setImageResource(toolIcon(mView.getSelectTool()));
     	item_move.setIcon(R.drawable.ic_menu_resize);
     	item_eraser.setIcon(R.drawable.ic_menu_eraser);
     	// item_typewriter.setIcon(R.drawable.ic_menu_text);
@@ -589,8 +655,24 @@ public class QuillWriterActivity
     		item_pencil.setIcon(R.drawable.ic_menu_pencil_active);
     		tools_pencil.setChecked(true);
     		return;
-    	case SELECT:
+    	case SELECT_WAND:
     		item_select.setIcon(R.drawable.ic_menu_select_active);
+    		((ImageView)selectActionView).setImageResource(R.drawable.ic_menu_select_active);
+    		tools_select.setChecked(true);
+    		return;
+    	case SELECT_FREE:
+    		item_select.setIcon(R.drawable.ic_tool_free_select_active);
+    		((ImageView)selectActionView).setImageResource(R.drawable.ic_tool_free_select_active);
+    		tools_select.setChecked(true);
+    		return;
+    	case SELECT_RECT:
+    		item_select.setIcon(R.drawable.ic_tool_rect_select_active);
+    		((ImageView)selectActionView).setImageResource(R.drawable.ic_tool_rect_select_active);
+    		tools_select.setChecked(true);
+    		return;
+    	case SELECT_MOVE:
+    		item_select.setIcon(R.drawable.ic_tool_move_select_active);
+    		((ImageView)selectActionView).setImageResource(R.drawable.ic_tool_move_select_active);
     		tools_select.setChecked(true);
     		return;
     	case LINE:
@@ -652,7 +734,7 @@ public class QuillWriterActivity
 	}
 
     private void pasteSelection() {
-    	setActiveTool(Tool.SELECT);
+    	setActiveTool(mView.getSelectTool());
     	mView.pasteSelection(this);
 	}
 
@@ -1007,6 +1089,12 @@ public class QuillWriterActivity
 
 	@Override
 	public void onSelectionChangedListener(){
+		if (mView.getToolType() == mView.getSelectTool() && mView.getSelectMode() == SelectMode.MOVE) {
+			setActiveTool(Tool.SELECT_MOVE);
+		}
+		if (mView.getToolType() == Tool.SELECT_MOVE && mView.getSelectMode() == SelectMode.SELECT) {
+			setActiveTool(mView.getSelectTool());
+		}
 		updateCopyPasteIcons();
 	}
 	

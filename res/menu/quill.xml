@@ -3,7 +3,17 @@
   xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/pencil" android:title="@string/menu_quill_pencil" android:showAsAction="always" android:icon="@drawable/ic_menu_pencil"></item><item android:id="@+id/fountainpen" android:title="@string/menu_quill_fountain_pen" android:showAsAction="always" android:icon="@drawable/toolbox_fountainpen"></item>
     
-	<item android:id="@+id/select" android:title="@string/menu_quill_select" android:showAsAction="always" android:icon="@drawable/ic_menu_select"></item>
+	<item android:id="@+id/select" 
+	    android:title="@string/menu_quill_select" 
+	    android:showAsAction="always" 
+	    android:actionLayout="@layout/av_select"
+	    android:icon="@drawable/ic_menu_select">
+		<menu>
+        	    <item android:id="@+id/select_wand" android:title="@string/menu_quill_select_wand" android:icon="@drawable/ic_menu_select"></item>
+        	    <item android:id="@+id/select_free" android:title="@string/menu_quill_select_free" android:icon="@drawable/ic_tool_free_select"></item>	    
+        	    <item android:id="@+id/select_rect" android:title="@string/menu_quill_select_rect" android:icon="@drawable/ic_tool_rect_select"></item>	    
+		</menu>
+	</item>
     <item android:id="@+id/move" android:title="@string/menu_quill_move" android:showAsAction="ifRoom" android:icon="@drawable/ic_menu_resize"></item>
    	<item android:title="@string/menu_quill_eraser" android:id="@+id/eraser" android:showAsAction="always" android:icon="@drawable/ic_menu_eraser"></item>
     <item android:id="@+id/undo" android:icon="@drawable/ic_menu_undo" android:showAsAction="ifRoom" android:title="@string/menu_quill_undo"></item>
@@ -14,10 +24,8 @@
     <item android:id="@+id/pen_history" android:title="@string/menu_quill_pen_history" android:visible="false"></item>
     <item android:id="@+id/edit" android:title="@string/menu_quill_edit">
       	<menu>
-    		<group android:id="@+id/edit_group" android:checkableBehavior="single">
         	    <item android:id="@+id/edit_copy" android:title="@string/menu_quill_copy"></item>
         	    <item android:id="@+id/edit_paste" android:title="@string/menu_quill_paste"></item>
-    		</group>	
     	</menu>
     </item>    
     <item android:id="@+id/tools" android:title="@string/menu_quill_tools">

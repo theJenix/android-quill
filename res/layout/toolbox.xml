@@ -69,7 +69,7 @@
         android:layout_toRightOf="@+id/toolbox_text"
         android:background="@drawable/toolbox_background"
         android:padding="3dp"
-        android:src="@drawable/toolbox_select" />
+        android:src="@drawable/toolbox_select_wand" />
 
     <ImageButton
         android:id="@+id/toolbox_undo"

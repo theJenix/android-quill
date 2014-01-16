@@ -97,6 +97,7 @@ public class HandwriterView
 	protected Canvas canvas;
 	private Toast toast;
 	
+	private Tool currentSelectTool = Tool.SELECT_WAND;
 	private LinkedList<Stroke> selectedStrokes = new LinkedList<Stroke> ();
 	private LinkedList<GraphicsLine> selectedLineArt = new LinkedList<GraphicsLine> ();
 	private LinkedList<GraphicsImage> selectedImage = new LinkedList<GraphicsImage> ();
@@ -106,6 +107,16 @@ public class HandwriterView
 	private Page selectionInPage = null;
 	private float selectionDX = 0f;
 	private float selectionDY = 0f;
+	public enum SelectMode {
+		SELECT, MOVE
+	}
+	private SelectMode selectMode = SelectMode.SELECT;
+	public SelectMode getSelectMode() {
+		return selectMode;
+	}
+	public void setSelectMode(SelectMode m) {
+		selectMode = m;
+	}
 	
 	private boolean palmShield = false;
 	private RectF palmShieldRect;
@@ -278,6 +289,11 @@ public class HandwriterView
 	
 	public void setToolType(Tool tool) {
 		if (tool.equals(tool_type)) return;
+		if (Graphics.isSelectTool(tool) && Graphics.isSelectTool(tool_type)) {
+			toolbox.setActiveTool(tool);
+			tool_type = tool;
+			return;
+		}
 		if (touchHandler != null) {
 			touchHandler.destroy();
 			touchHandler = null;
@@ -292,7 +308,9 @@ public class HandwriterView
 				touchHandler = new TouchHandlerPassivePen(this);
 			toolHistory.setTool(tool);
 			break;
-		case SELECT:
+		case SELECT_WAND:
+		case SELECT_FREE:
+		case SELECT_RECT:
 			touchHandler = new TouchHandlerSelect(this);
 			break;
 		case ARROW:
@@ -762,6 +780,35 @@ public class HandwriterView
 		}
 	}
 	
+	public void selectIn(RectF r) {
+		selectStrokesIn(r);
+		selectLineArtIn(r);
+		selectImageIn(r);		
+	}
+	
+	public void filterSelection(RectF r) {
+		if (checkSelection(r)) return;
+		clearSelection();
+		selectIn(r);
+		selectionChanged();
+	}
+
+		public boolean checkSelection(RectF r) {
+		for (Stroke s: selectedStrokes)
+			if (!RectF.intersects(r, s.getBoundingBox())) return false;
+		for (GraphicsLine s: selectedLineArt)
+			if (!RectF.intersects(r, s.getBoundingBox())) return false;
+		for (GraphicsImage s: selectedImage)
+			if (!RectF.intersects(r, s.getBoundingBox())) return false;
+		for (Stroke s: selectedStrokes)
+			if (!s.intersects(r)) return false;
+		for (GraphicsLine s: selectedLineArt)
+			if (!s.intersects(r)) return false;
+		for (GraphicsImage s: selectedImage)
+			if (!s.intersects(r)) return false;
+		return true;
+	}
+	
 	public boolean selectStrokesIn(RectF r) {
 		boolean ping = false;
 	    for (Stroke s: page.strokes) {	
@@ -805,16 +852,27 @@ public class HandwriterView
 	
 	public void clearSelection(){
 		Log.d("HandWriterView","ClearSelection!");
+		setSelectMode(SelectMode.SELECT);
+		if(emptySelection()) return;
 		selectedStrokes = new LinkedList<Stroke> ();
 		selectedLineArt = new LinkedList<GraphicsLine> ();
 		selectedImage = new LinkedList<GraphicsImage> ();
-		selectionBitmap = null;
-		selectionCanvas = null;
+		//selectionBitmap = null;
+		//selectionCanvas = null;
 		selectionDX = 0f;
 		selectionDY = 0f;
 		selectionMatrix.reset();
 		invalidate();
 		callOnSelectionChangedListener();
+	}
+	
+	public void setSelectTool (Tool tool) {
+		if (tool == Tool.SELECT_FREE || tool == Tool.SELECT_RECT || tool == Tool.SELECT_WAND)
+			currentSelectTool = tool;
+	}
+	
+	public Tool getSelectTool() {
+		return currentSelectTool;
 	}
 	
 	public boolean selectionInCurrentPage() {
@@ -1097,6 +1155,8 @@ public class HandwriterView
 			addLineArtToSelection(g);
 		for (GraphicsImage g: pastedImage)
 			addImageToSelection(g);
+		if (!emptySelection())
+			setSelectMode(SelectMode.MOVE);
 		selectionChanged();
 		invalidate();
 	}
@@ -1210,9 +1270,7 @@ public class HandwriterView
 		boolean ping = false;
 	    for (GraphicsImage s: page.images) {	
 			if (!RectF.intersects(r, s.getBoundingBox())) continue;
-			Log.v(TAG, "Testing img intersection");
 			if (s.intersects(r)) {
-				Log.v(TAG, "img selected");
 				addImageToSelection(s);
 				ping = true;
 			}
