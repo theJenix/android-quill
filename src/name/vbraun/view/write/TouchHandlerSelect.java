@@ -94,8 +94,10 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			if (mode == SelectMode.SELECT) {
 				mRectF.set(oldX, oldY, newX, newY);
 				mRectF.sort();
-				if (view.getSelectTool() == Tool.SELECT_WAND)
+				if (view.getSelectTool() == Tool.SELECT_WAND){
 					mRectF.inset(-15, -15);
+					view.selectIntersects(mRectF);					
+				}
 				if (view.getSelectTool() == Tool.SELECT_FREE && lasso != null) {
 					if (mRectF.height()+mRectF.width() > 10 && !lasso.full()) {
 						lasso.add(newX, newY);
@@ -103,22 +105,24 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 						oldX = newX;
 						oldY = newY;
 					}
-				} else
-					view.selectIn(mRectF);
+				}
 				if (view.getSelectTool() == Tool.SELECT_RECT) {
+					view.selectIn(mRectF);
 					view.filterSelection(mRectF);
 				}
 			} else if (mode == SelectMode.MOVE) {
 				view.translateSelection(newX-oldX,newY-oldY);
+			} else if (mode == SelectMode.VMOVE) {
+				view.translateSelection(0,newY-oldY);				
 			}
 			
-			if (mode == SelectMode.MOVE || view.getSelectTool() == Tool.SELECT_WAND) {
+			if (mode == SelectMode.MOVE || mode == SelectMode.VMOVE ||view.getSelectTool() == Tool.SELECT_WAND) {
 				oldX = newX;
 				oldY = newY;
 			}
 			return true;				
 		} else if (action == MotionEvent.ACTION_DOWN) {  // start move
-			if (!view.emptySelection()) {
+			if (!view.emptySelection() && mode == SelectMode.SELECT) {
 				view.setSelectMode(SelectMode.MOVE);
 				mode = SelectMode.MOVE;
 			}
@@ -135,18 +139,19 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			penID = event.getPointerId(0);
 			oldX = newX = event.getX();
 			oldY = newY = event.getY();
-			lasso = new Lasso(newX, newY);
 
 			if (mode == SelectMode.SELECT) {
 				view.startSelectionInCurrentPage();
-			} else if (mode == SelectMode.MOVE) {
+				lasso = new Lasso(newX, newY);
+			} else if (mode == SelectMode.MOVE || mode == SelectMode.VMOVE) {
 				if (!view.selectionInCurrentPage() || !view.touchesSelection(newX, newY)) {
 					view.startSelectionInCurrentPage();
 					view.setSelectMode(SelectMode.SELECT);
 					mode = SelectMode.SELECT;
+					lasso = new Lasso(newX, newY);
 				}
 			}
-			//Log.v("TouchHandlerSelect", "ACTION_DOWN "+mode+" "+fingerId2+" + "+fingerId1+" "+oldX1+" "+oldY1+" "+oldX2+" "+oldY2);
+			Log.v("TouchHandlerSelect", "ACTION_DOWN "+mode+" "+oldX+" "+oldY);
 			return true;
 		} else if (action == MotionEvent.ACTION_UP) { 
 			Assert.assertTrue(event.getPointerCount() == 1);
@@ -155,15 +160,24 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 				if (mode == SelectMode.SELECT) {
 					penID = -1;
 					if (view.getSelectTool() == Tool.SELECT_FREE) {
+						if (lasso.startX() < 30 && newX > view.canvas.getWidth()-30)
+							lasso.setBelow();
+						if (newX < 30 && lasso.startX() > view.canvas.getWidth()-30)
+							lasso.setBelow();
 						view.selectIn(lasso);
-						lasso = null;
 					}
 					if (!view.emptySelection()) {
-						view.setSelectMode(SelectMode.MOVE);
-						mode = SelectMode.MOVE;
+						if (lasso != null && lasso.getBelow()) {
+							view.setSelectMode(SelectMode.VMOVE);
+							mode = SelectMode.VMOVE;							
+						} else {
+							view.setSelectMode(SelectMode.MOVE);
+							mode = SelectMode.MOVE;
+						}
 					}
+					lasso = null;
 					view.selectionChanged();
-				} else if (mode == SelectMode.MOVE) {
+				} else if (mode == SelectMode.MOVE || mode == SelectMode.VMOVE) {
 					penID = -1;
 					view.commitTranslateSelection();
 					view.selectionChanged();
@@ -179,7 +193,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 					page.draw(view.canvas);
 					view.invalidate();
 				} else if (mode == SelectMode.MOVE) {
-					Log.v("TouchHandlerSelect", "ACTION_UP "+mode+" "+fingerId2+" + "+fingerId1+" "+oldX1+" "+oldY1+" "+oldX2+" "+oldY2);
+					//Log.v("TouchHandlerSelect", "ACTION_UP "+mode+" "+fingerId2+" + "+fingerId1+" "+oldX1+" "+oldY1+" "+oldX2+" "+oldY2);
 					view.commitScaleRotateSelection();
 					view.selectionChanged();					
 				}
@@ -193,7 +207,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			penID = fingerId1 = fingerId2 = -1;
 			if (mode == SelectMode.SELECT)
 				getPage().draw(view.canvas);
-			else if (mode == SelectMode.MOVE)
+			else if (mode == SelectMode.MOVE || mode == SelectMode.VMOVE)
 				view.setSelectionMatrix(new Matrix());
 			view.invalidate();
 			return true;
@@ -210,7 +224,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			if (distance >= getMoveGestureMinDistance()) {
 				fingerId2 = event.getPointerId(idx2);
 			}
-			Log.v("TouchHandlerSelect", "ACTION_POINTER_DOWN "+mode+" "+fingerId2+" + "+fingerId1+" "+oldX1+" "+oldY1+" "+oldX2+" "+oldY2);
+			//Log.v("TouchHandlerSelect", "ACTION_POINTER_DOWN "+mode+" "+fingerId2+" + "+fingerId1+" "+oldX1+" "+oldY1+" "+oldX2+" "+oldY2);
 		}
 		return false;
 	}
@@ -222,7 +236,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 		} else {
 			canvas.drawBitmap(bitmap, 0, 0, null);
 			view.drawSelection(canvas);
-			if (view.getSelectTool() == Tool.SELECT_RECT && 
+			if (view.getSelectTool() == Tool.SELECT_RECT && view.getSelectMode() == SelectMode.SELECT &&
 					mRectF != null && view.selectionInCurrentPage() && penID != -1) {
 				canvas.drawRect(mRectF, pen);
 				view.invalidate();

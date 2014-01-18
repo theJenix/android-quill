@@ -290,6 +290,8 @@ public class HandwriterView
 	public void setToolType(Tool tool) {
 		if (tool.equals(tool_type)) return;
 		if (Graphics.isSelectTool(tool) && Graphics.isSelectTool(tool_type)) {
+			if (tool != Tool.SELECT_MOVE && tool != Tool.SELECT_VMOVE)
+				startSelectionInCurrentPage();
 			toolbox.setActiveTool(tool);
 			tool_type = tool;
 			return;
@@ -780,7 +782,7 @@ public class HandwriterView
 		}
 	}
 
-	public boolean selectIn(Lasso lasso) {
+	public boolean selectIntersect(Lasso lasso) {
 		startSelectionInCurrentPage();
 		boolean ping = false;
 		for(Stroke s: page.strokes) 
@@ -805,6 +807,37 @@ public class HandwriterView
 		return ping;
 	}
 	
+	public boolean selectIn(Lasso lasso) {
+		startSelectionInCurrentPage();
+		boolean ping = false;
+		for(Stroke s: page.strokes) 
+			if (s.isIn(lasso)) {
+				addStrokeToSelection(s);
+				ping = true;
+			}
+		for(GraphicsLine s: page.lineArt) 
+			if (s.isIn(lasso)) {
+				addLineArtToSelection(s);
+				ping = true;
+			}
+		for(GraphicsImage s: page.images) 
+			if (s.isIn(lasso)) {
+				addImageToSelection(s);
+				ping = true;
+			}
+		
+		if (ping){
+			invalidate();
+		}
+		return ping;
+	}
+	
+	public void selectIntersects(RectF r) {
+		selectStrokesIntersects(r);
+		selectLineArtIntersects(r);
+		selectImageIntersects(r);		
+	}
+
 	public void selectIn(RectF r) {
 		selectStrokesIn(r);
 		selectLineArtIn(r);
@@ -820,25 +853,33 @@ public class HandwriterView
 
 		public boolean checkSelection(RectF r) {
 		for (Stroke s: selectedStrokes)
-			if (!RectF.intersects(r, s.getBoundingBox())) return false;
+			if (!s.isIn(r)) return false;
 		for (GraphicsLine s: selectedLineArt)
-			if (!RectF.intersects(r, s.getBoundingBox())) return false;
+			if (!s.isIn(r)) return false;
 		for (GraphicsImage s: selectedImage)
-			if (!RectF.intersects(r, s.getBoundingBox())) return false;
-		for (Stroke s: selectedStrokes)
-			if (!s.intersects(r)) return false;
-		for (GraphicsLine s: selectedLineArt)
-			if (!s.intersects(r)) return false;
-		for (GraphicsImage s: selectedImage)
-			if (!s.intersects(r)) return false;
+			if (!s.isIn(r)) return false;
 		return true;
+	}
+	
+	public boolean selectStrokesIntersects(RectF r) {
+		boolean ping = false;
+	    for (Stroke s: page.strokes) {	
+			if (!RectF.intersects(r, s.getBoundingBox())) continue;
+			if (s.intersects(r)) {
+				addStrokeToSelection(s);
+				ping = true;
+			}
+		}
+		if (ping){
+			invalidate();
+		}
+		return ping;
 	}
 	
 	public boolean selectStrokesIn(RectF r) {
 		boolean ping = false;
 	    for (Stroke s: page.strokes) {	
-			if (!RectF.intersects(r, s.getBoundingBox())) continue;
-			if (s.intersects(r)) {
+			if (s.isIn(r)) {
 				addStrokeToSelection(s);
 				ping = true;
 			}
@@ -1266,11 +1307,25 @@ public class HandwriterView
 		}
 	}
 	
-	public boolean selectLineArtIn(RectF r) {
+	public boolean selectLineArtIntersects(RectF r) {
 		boolean ping = false;
 	    for (GraphicsLine s: page.lineArt) {	
 			if (!RectF.intersects(r, s.getBoundingBox())) continue;
 			if (s.intersects(r)) {
+				addLineArtToSelection(s);
+				ping = true;
+			}
+		}
+		if (ping){
+			invalidate();
+		}
+		return ping;
+	}
+
+	public boolean selectLineArtIn(RectF r) {
+		boolean ping = false;
+	    for (GraphicsLine s: page.lineArt) {	
+			if (s.isIn(r)) {
 				addLineArtToSelection(s);
 				ping = true;
 			}
@@ -1291,11 +1346,25 @@ public class HandwriterView
 		}
 	}
 
-	public boolean selectImageIn(RectF r) {
+	public boolean selectImageIntersects(RectF r) {
 		boolean ping = false;
 	    for (GraphicsImage s: page.images) {	
 			if (!RectF.intersects(r, s.getBoundingBox())) continue;
 			if (s.intersects(r)) {
+				addImageToSelection(s);
+				ping = true;
+			}
+		}
+		if (ping){
+			invalidate();
+		}
+		return ping;
+	}
+
+	public boolean selectImageIn(RectF r) {
+		boolean ping = false;
+	    for (GraphicsImage s: page.images) {	
+			if (s.isIn(r)) {
 				addImageToSelection(s);
 				ping = true;
 			}

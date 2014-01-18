@@ -114,8 +114,16 @@ public class GraphicsLine extends GraphicsControlpoint {
 		return lineIntersectsRectF(x0, y0, x1, y1, screenRect);
 	}
 	
+	public boolean isIn(RectF r_screen) {
+		return (r_screen.contains(getBoundingBox()));
+	}
+	
 	public boolean intersects(Lasso lasso) {
 		return lasso.intersectsSegment(p0.screenX(), p0.screenY(), p1.screenX(), p1.screenY());
+	}
+	
+	public boolean isIn(Lasso lasso) {
+		return lasso.containsSegment(p0.screenX(), p0.screenY(), p1.screenX(), p1.screenY());
 	}
 	
 	public static boolean lineIntersectsRectF(float x0, float y0, float x1, float y1, RectF rect) { 
@@ -141,10 +149,21 @@ public class GraphicsLine extends GraphicsControlpoint {
 		if (yMax < rect.top) return false;
 		return true;
 	}
+	
+	private static float nabla(float x1,float y1,float x2,float y2,float x3, float y3) {
+		return (x1*(y2-y3)-x2*(y1-y3)+x3*(y1-y2));
+	}
+
+	public static boolean lineIntersectsLine(float ax1, float ay1,float ax2, float ay2,
+			float bx1, float by1,float bx2, float by2) {
+		return nabla(ax1,ay1,ax2,ay2,bx1,by1)*nabla(ax1,ay1,ax2,ay2,bx2,by2) <= 0 &&
+				nabla(bx1,by1,bx2,by2,ax1,ay1)*nabla(bx1,by1,bx2,by2,ax2,ay2) <= 0;
+	}
 
 	public void translate(float dx, float dy) { // In screen coordinates
 		p0.translate(dx, dy);
 		p1.translate(dx, dy);
+		recompute_bounding_box = true;
 	}
 
 	public void applyMatrix(Matrix m) { // In screen coordinates
@@ -155,6 +174,7 @@ public class GraphicsLine extends GraphicsControlpoint {
 		p0.y = points[1];
 		p1.x = points[2];
 		p1.y = points[3];
+		recompute_bounding_box = true;
 	}
 
 	@Override

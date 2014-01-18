@@ -1110,7 +1110,7 @@ public class QuillWriterActivity
 		if (mView.getToolType() == mView.getSelectTool() && mView.getSelectMode() == SelectMode.VMOVE) {
 			setActiveTool(Tool.SELECT_VMOVE);
 		}
-		if (mView.getToolType() == Tool.SELECT_MOVE && mView.getSelectMode() == SelectMode.SELECT) {
+		if ((mView.getToolType() == Tool.SELECT_MOVE || mView.getToolType() == Tool.SELECT_VMOVE) && mView.getSelectMode() == SelectMode.SELECT) {
 			setActiveTool(mView.getSelectTool());
 		}
 		updateCopyPasteIcons();

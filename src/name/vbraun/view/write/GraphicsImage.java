@@ -266,6 +266,10 @@ public class GraphicsImage extends GraphicsControlpoint {
 		return false;
 	}
 	
+	public boolean isIn(RectF r_screen) {
+		return (r_screen.contains(getBoundingBox()));
+	}	
+	
 	public boolean intersects(Lasso lasso) {
 		if (lasso.contains(center.screenX(),center.screenY())) return true;
 		float p[] = {transform.inverseX(lasso.startX()), transform.inverseY(lasso.startY())};
@@ -282,8 +286,20 @@ public class GraphicsImage extends GraphicsControlpoint {
 		return false;
 	}
 	
+	public boolean isIn(Lasso lasso) {
+		if (!lasso.contains(center.screenX(),center.screenY())) return false;
+		Log.v("GImage", "passed");
+		//not completely outside, check for edge intersections.
+		if (!lasso.containsSegment(top_left.screenX(), top_left.screenY(), top_right.screenX(), top_right.screenY())) return false;
+		if (!lasso.containsSegment(top_right.screenX(), top_right.screenY(), bottom_right.screenX(), bottom_right.screenY())) return false;
+		if (!lasso.containsSegment(bottom_right.screenX(), bottom_right.screenY(), bottom_left.screenX(), bottom_left.screenY())) return false;
+		if (!lasso.containsSegment(bottom_left.screenX(), bottom_left.screenY(), top_left.screenX(), top_left.screenY())) return false;
+		return true;
+	}
+	
 	public void applyMatrix(Matrix m) { // In screen coordinates
 		applyNativeMatrix(transform.transformMatrix(m));
+		recompute_bounding_box = true;
 	}
 
 	private void applyNativeMatrix(Matrix m) { // In native coordinates

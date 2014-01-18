@@ -240,14 +240,25 @@ public class Stroke extends Graphics {
 	}
 	
 	public boolean intersects(Lasso lasso) { //screen coord
-		Log.v("Stroke","b4 rect" + lasso.getBoundingBox().toString() + "bbox "+ transform.apply(getBoundingBox()));
 		if (!RectF.intersects(getBoundingBox(), lasso.getBoundingBox()))
 			return false;
-		Log.v("Stroke","passed rect");
 		for (int i = 0; i<N; i++)
 			if (lasso.contains(transform.applyX(position_x[i]), transform.applyY(position_y[i])))
 				return true;
 		return false;
+	}
+	
+	public boolean isIn(RectF r_screen) {
+		return (r_screen.contains(getBoundingBox()));
+	}
+	
+	public boolean isIn(Lasso lasso) { //screen coord
+		if (!lasso.getBoundingBox().contains(getBoundingBox()))
+			return false;
+		for (int i = 0; i<N; i++)
+			if (!lasso.contains(transform.applyX(position_x[i]), transform.applyY(position_y[i])))
+				return false;
+		return true;
 	}
 	
 	public void translate(float dx, float dy) { // In screen coordinates
@@ -255,6 +266,7 @@ public class Stroke extends Graphics {
 			position_x[i] += dx/scale;
 			position_y[i] += dy/scale;
 		}
+		recompute_bounding_box = true;
 	}
 
 	public void applyMatrix(Matrix m) { // In screen coordinates
@@ -269,6 +281,7 @@ public class Stroke extends Graphics {
 			position_x[i] = points[2*i];
 			position_y[i] = points[2*i+1];
 		}
+		recompute_bounding_box = true;
 	}
 
 	public void draw(Canvas c, RectF bounding_box) {
