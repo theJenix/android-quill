@@ -1,6 +1,7 @@
 package name.vbraun.view.write;
 
 import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.util.Log;
 
 public class Transformation {
@@ -38,6 +39,12 @@ public class Transformation {
 
 	public float applyY(float y) {
 		return y * scale + offset_y;
+	}
+	
+	public RectF apply(RectF r) {
+		RectF rr = new RectF(applyX(r.left), applyY(r.top), applyX(r.right), applyY(r.bottom));
+		rr.sort();
+		return rr;
 	}
 
 	public float inverseX(float x) {

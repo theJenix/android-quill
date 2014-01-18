@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.FloatMath;
 import android.util.Log;
@@ -22,10 +23,20 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 	private float oldX1, oldY1, oldX2, oldY2;
 	private float newX1, newY1, newX2, newY2;
 	private final RectF mRectF = new RectF();
+	private Paint pen;
+	protected Lasso lasso;
+	private int Nmax = 1024;
+
 
 	protected TouchHandlerSelect(HandwriterView view) {
 		super(view);
 		view.setSelectMode(SelectMode.SELECT);
+		pen = new Paint();
+		pen.setAntiAlias(true);
+		pen.setARGB(0xff, 0, 0, 0);
+		pen.setStyle(Paint.Style.STROKE);
+		float[] dash = {5,5}; 
+		pen.setPathEffect(new DashPathEffect(dash, 0));
 	}	
 
 	@Override
@@ -83,9 +94,17 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			if (mode == SelectMode.SELECT) {
 				mRectF.set(oldX, oldY, newX, newY);
 				mRectF.sort();
-				if (view.getSelectTool() != Tool.SELECT_RECT)
+				if (view.getSelectTool() == Tool.SELECT_WAND)
 					mRectF.inset(-15, -15);
-				view.selectIn(mRectF);
+				if (view.getSelectTool() == Tool.SELECT_FREE && lasso != null) {
+					if (mRectF.height()+mRectF.width() > 10 && !lasso.full()) {
+						lasso.add(newX, newY);
+						drawOutline(oldX,oldY,newX,newY);
+						oldX = newX;
+						oldY = newY;
+					}
+				} else
+					view.selectIn(mRectF);
 				if (view.getSelectTool() == Tool.SELECT_RECT) {
 					view.filterSelection(mRectF);
 				}
@@ -93,7 +112,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 				view.translateSelection(newX-oldX,newY-oldY);
 			}
 			
-			if (mode == SelectMode.MOVE || view.getSelectTool() != Tool.SELECT_RECT) {
+			if (mode == SelectMode.MOVE || view.getSelectTool() == Tool.SELECT_WAND) {
 				oldX = newX;
 				oldY = newY;
 			}
@@ -116,6 +135,7 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			penID = event.getPointerId(0);
 			oldX = newX = event.getX();
 			oldY = newY = event.getY();
+			lasso = new Lasso(newX, newY);
 
 			if (mode == SelectMode.SELECT) {
 				view.startSelectionInCurrentPage();
@@ -134,6 +154,10 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			if (id == penID) {
 				if (mode == SelectMode.SELECT) {
 					penID = -1;
+					if (view.getSelectTool() == Tool.SELECT_FREE) {
+						view.selectIn(lasso);
+						lasso = null;
+					}
 					if (!view.emptySelection()) {
 						view.setSelectMode(SelectMode.MOVE);
 						mode = SelectMode.MOVE;
@@ -200,14 +224,24 @@ public class TouchHandlerSelect extends TouchHandlerABC {
 			view.drawSelection(canvas);
 			if (view.getSelectTool() == Tool.SELECT_RECT && 
 					mRectF != null && view.selectionInCurrentPage() && penID != -1) {
-				Paint p = new Paint();
-				p.setStyle(Paint.Style.STROKE);
-				float[] dash = {5,5}; 
-				p.setPathEffect(new DashPathEffect(dash, 0));
-				canvas.drawRect(mRectF, p);
+				canvas.drawRect(mRectF, pen);
+				view.invalidate();
+			}
+			if (view.getSelectTool() == Tool.SELECT_FREE && 
+					lasso != null && view.selectionInCurrentPage() && penID != -1) {
+				canvas.drawLine(newX, newY, lasso.startX(), lasso.startY(), pen);
 				view.invalidate();
 			}
 		}
+	}
+	
+	protected void drawOutline(float oldX, float oldY, float newX, float newY) {
+		view.selectionCanvas.drawLine(oldX, oldY, newX, newY, pen);
+		Rect mRect = new Rect();
+		mRect.set((int) oldX, (int) oldY, (int) newX, (int) newY);
+		mRect.sort();
+		mRect.inset(-10, -10);
+		view.invalidate(mRect);
 	}
 
 }

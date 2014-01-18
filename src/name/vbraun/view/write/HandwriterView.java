@@ -102,7 +102,7 @@ public class HandwriterView
 	private LinkedList<GraphicsLine> selectedLineArt = new LinkedList<GraphicsLine> ();
 	private LinkedList<GraphicsImage> selectedImage = new LinkedList<GraphicsImage> ();
 	private Bitmap selectionBitmap;
-	private Canvas selectionCanvas;
+	protected Canvas selectionCanvas;
 	private Matrix selectionMatrix = new Matrix();
 	private Page selectionInPage = null;
 	private float selectionDX = 0f;
@@ -779,6 +779,31 @@ public class HandwriterView
 			return true;
 		}
 	}
+
+	public boolean selectIn(Lasso lasso) {
+		startSelectionInCurrentPage();
+		boolean ping = false;
+		for(Stroke s: page.strokes) 
+			if (s.intersects(lasso)) {
+				addStrokeToSelection(s);
+				ping = true;
+			}
+		for(GraphicsLine s: page.lineArt) 
+			if (s.intersects(lasso)) {
+				addLineArtToSelection(s);
+				ping = true;
+			}
+		for(GraphicsImage s: page.images) 
+			if (s.intersects(lasso)) {
+				addImageToSelection(s);
+				ping = true;
+			}
+		
+		if (ping){
+			invalidate();
+		}
+		return ping;
+	}
 	
 	public void selectIn(RectF r) {
 		selectStrokesIn(r);
@@ -1162,7 +1187,7 @@ public class HandwriterView
 	}
 	
 	public void drawSelection(Canvas canvas) {
-		if (emptySelection()) return;
+		if (emptySelection() && currentSelectTool != Tool.SELECT_FREE) return;
 		if (!selectionInCurrentPage()) return;
 		canvas.drawBitmap(selectionBitmap, selectionMatrix, null);
 	}

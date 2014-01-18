@@ -114,6 +114,10 @@ public class GraphicsLine extends GraphicsControlpoint {
 		return lineIntersectsRectF(x0, y0, x1, y1, screenRect);
 	}
 	
+	public boolean intersects(Lasso lasso) {
+		return lasso.intersectsSegment(p0.screenX(), p0.screenY(), p1.screenX(), p1.screenY());
+	}
+	
 	public static boolean lineIntersectsRectF(float x0, float y0, float x1, float y1, RectF rect) { 
 		// f(x,y) = (y1-y0)*x - (x1-x0)*y + x1*y0-x0*y1
 		float dx = x1-x0;

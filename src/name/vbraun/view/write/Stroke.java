@@ -239,6 +239,17 @@ public class Stroke extends Graphics {
 		return false;
 	}
 	
+	public boolean intersects(Lasso lasso) { //screen coord
+		Log.v("Stroke","b4 rect" + lasso.getBoundingBox().toString() + "bbox "+ transform.apply(getBoundingBox()));
+		if (!RectF.intersects(getBoundingBox(), lasso.getBoundingBox()))
+			return false;
+		Log.v("Stroke","passed rect");
+		for (int i = 0; i<N; i++)
+			if (lasso.contains(transform.applyX(position_x[i]), transform.applyY(position_y[i])))
+				return true;
+		return false;
+	}
+	
 	public void translate(float dx, float dy) { // In screen coordinates
 		for (int i = 0; i < N; i++) {
 			position_x[i] += dx/scale;

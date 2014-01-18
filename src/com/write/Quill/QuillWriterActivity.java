@@ -590,6 +590,10 @@ public class QuillWriterActivity
     ///////////////////////////////////////////////////////////////////////////////
 
 	private void setActiveTool(Tool tool) {
+		if (Graphics.isSelectTool(tool) && (mView.getSelectMode() == SelectMode.MOVE)) {
+			mView.setSelectTool(tool);
+			tool = Tool.SELECT_MOVE;
+		}
 		mView.setToolType(tool);
 		setActionBarIconActive(tool);
 	}

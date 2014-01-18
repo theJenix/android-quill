@@ -266,6 +266,22 @@ public class GraphicsImage extends GraphicsControlpoint {
 		return false;
 	}
 	
+	public boolean intersects(Lasso lasso) {
+		if (lasso.contains(center.screenX(),center.screenY())) return true;
+		float p[] = {transform.inverseX(lasso.startX()), transform.inverseY(lasso.startY())};
+		Matrix im = new Matrix();
+		if(!matrix.invert(im))
+			Log.v(TAG, "Non-invertible matrix in intersects");
+		im.mapPoints(p);
+		if (inverseRect().contains(p[0],p[1])) return true; 
+		//none completely contains the other, check for edge intersections.
+		if (lasso.intersectsSegment(top_left.screenX(), top_left.screenY(), top_right.screenX(), top_right.screenY())) return true;
+		if (lasso.intersectsSegment(top_right.screenX(), top_right.screenY(), bottom_right.screenX(), bottom_right.screenY())) return true;
+		if (lasso.intersectsSegment(bottom_right.screenX(), bottom_right.screenY(), bottom_left.screenX(), bottom_left.screenY())) return true;
+		if (lasso.intersectsSegment(bottom_left.screenX(), bottom_left.screenY(), top_left.screenX(), top_left.screenY())) return true;
+		return false;
+	}
+	
 	public void applyMatrix(Matrix m) { // In screen coordinates
 		applyNativeMatrix(transform.transformMatrix(m));
 	}
