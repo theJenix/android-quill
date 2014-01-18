@@ -594,6 +594,10 @@ public class QuillWriterActivity
 			mView.setSelectTool(tool);
 			tool = Tool.SELECT_MOVE;
 		}
+		if (Graphics.isSelectTool(tool) && (mView.getSelectMode() == SelectMode.VMOVE)) {
+			mView.setSelectTool(tool);
+			tool = Tool.SELECT_VMOVE;
+		}
 		mView.setToolType(tool);
 		setActionBarIconActive(tool);
 	}
@@ -612,6 +616,8 @@ public class QuillWriterActivity
     		return R.drawable.ic_tool_rect_select;
     	case SELECT_MOVE:
     		return R.drawable.ic_tool_move_select;
+    	case SELECT_VMOVE:
+    		return R.drawable.ic_tool_vmove_select;
     	case LINE:
     		return R.drawable.ic_menu_line;
     	case MOVE:
@@ -677,6 +683,11 @@ public class QuillWriterActivity
     	case SELECT_MOVE:
     		item_select.setIcon(R.drawable.ic_tool_move_select_active);
     		((ImageView)selectActionView).setImageResource(R.drawable.ic_tool_move_select_active);
+    		tools_select.setChecked(true);
+    		return;
+    	case SELECT_VMOVE:
+    		item_select.setIcon(R.drawable.ic_tool_vmove_select_active);
+    		((ImageView)selectActionView).setImageResource(R.drawable.ic_tool_vmove_select_active);
     		tools_select.setChecked(true);
     		return;
     	case LINE:
@@ -1095,6 +1106,9 @@ public class QuillWriterActivity
 	public void onSelectionChangedListener(){
 		if (mView.getToolType() == mView.getSelectTool() && mView.getSelectMode() == SelectMode.MOVE) {
 			setActiveTool(Tool.SELECT_MOVE);
+		}
+		if (mView.getToolType() == mView.getSelectTool() && mView.getSelectMode() == SelectMode.VMOVE) {
+			setActiveTool(Tool.SELECT_VMOVE);
 		}
 		if (mView.getToolType() == Tool.SELECT_MOVE && mView.getSelectMode() == SelectMode.SELECT) {
 			setActiveTool(mView.getSelectTool());

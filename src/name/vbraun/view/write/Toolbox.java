@@ -70,6 +70,7 @@ public class Toolbox
 	protected Drawable selectRectDrawable;
 	protected Drawable selectWandDrawable;
 	protected Drawable selectMoveDrawable;
+	protected Drawable selectVMoveDrawable;
 	protected ImageButton resizeButton;
 	protected ImageButton eraserButton;	
 	protected ImageButton textButton, photoButton;
@@ -114,6 +115,7 @@ public class Toolbox
         selectFreeDrawable = getResources().getDrawable(R.drawable.toolbox_select_free);
         selectWandDrawable = getResources().getDrawable(R.drawable.toolbox_select_wand);
         selectMoveDrawable = getResources().getDrawable(R.drawable.toolbox_select_move);
+        selectVMoveDrawable = getResources().getDrawable(R.drawable.toolbox_select_vmove);
 		redButton    = (ImageButton) findViewById(R.id.toolbox_redbutton);
 		undoButton   = (ImageButton) findViewById(R.id.toolbox_undo);
 		redoButton   = (ImageButton) findViewById(R.id.toolbox_redo);
@@ -253,6 +255,7 @@ public class Toolbox
 		case SELECT_RECT:
 		case SELECT_FREE:
 		case SELECT_MOVE:
+		case SELECT_VMOVE:
 			return selectButton;
 		case MOVE:
 			return resizeButton;
@@ -302,6 +305,8 @@ public class Toolbox
  			selectButton.setImageDrawable(selectRectDrawable);
  		if (tool == Tool.SELECT_MOVE)
  			selectButton.setImageDrawable(selectMoveDrawable);
+ 		if (tool == Tool.SELECT_VMOVE)
+ 			selectButton.setImageDrawable(selectVMoveDrawable);
  		setIconActive(previousTool, false);
 		setIconActive(tool, true);
 		previousTool = tool;

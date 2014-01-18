@@ -108,7 +108,7 @@ public class HandwriterView
 	private float selectionDX = 0f;
 	private float selectionDY = 0f;
 	public enum SelectMode {
-		SELECT, MOVE
+		SELECT, MOVE, VMOVE
 	}
 	private SelectMode selectMode = SelectMode.SELECT;
 	public SelectMode getSelectMode() {
