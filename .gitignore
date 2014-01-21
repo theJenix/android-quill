@@ -18,3 +18,5 @@ bin/*
 .hg*
 third-party
 libs
+.idea/workspace.xml
+out/production/*
