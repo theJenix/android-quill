@@ -205,13 +205,13 @@ public class Preferences
 	public boolean onPreferenceClick(Preference preference) {
     	Log.v(TAG, "oPreferenceClick");
     	if (preference == restorePreference) {
-    		Intent intent = new Intent(getApplicationContext(), name.vbraun.filepicker.FilePickerActivity.class);
+    		Intent intent = new Intent(getApplicationContext(), yuku.filechooser.FileChooserActivity.class);
     		intent.setAction("org.openintents.action.PICK_FILE");
     		intent.putExtra("org.openintents.extra.TITLE", getString(R.string.preferences_pick_backup));
     		startActivityForResult(intent, REQUEST_CODE_PICK_BACKUP);
     		return true;
     	} else if (preference == backupDirPreference) {
-    		Intent intent = new Intent(getApplicationContext(), name.vbraun.filepicker.FilePickerActivity.class);
+    		Intent intent = new Intent(getApplicationContext(), yuku.filechooser.FileChooserActivity.class);
     		intent.setAction("org.openintents.action.PICK_DIRECTORY");
     		intent.putExtra("org.openintents.extra.TITLE", getString(R.string.preferences_select_backup_folder));
     		startActivityForResult(intent, REQUEST_CODE_PICK_BACKUP_DIRECTORY);

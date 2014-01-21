@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/ATree/ATree.iml" filepath="$PROJECT_DIR$/../yuku-android-util/ATree/ATree.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/ATreeDemo/ATreeDemo.iml" filepath="$PROJECT_DIR$/../yuku-android-util/ATreeDemo/ATreeDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/ActionBarSherlock4/ActionBarSherlock4.iml" filepath="$PROJECT_DIR$/../yuku-android-util/ActionBarSherlock4/ActionBarSherlock4.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/AdtBugs/AdtBugs.iml" filepath="$PROJECT_DIR$/../yuku-android-util/AdtBugs/AdtBugs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/Afw/Afw.iml" filepath="$PROJECT_DIR$/../yuku-android-util/Afw/Afw.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/AmazingListView/AmazingListView.iml" filepath="$PROJECT_DIR$/../yuku-android-util/AmazingListView/AmazingListView.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/AmazingListViewDemo/AmazingListViewDemo.iml" filepath="$PROJECT_DIR$/../yuku-android-util/AmazingListViewDemo/AmazingListViewDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/AmbilWarna/AmbilWarna.iml" filepath="$PROJECT_DIR$/../yuku-android-util/AmbilWarna/AmbilWarna.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/AmbilWarnaDicoba/AmbilWarnaDicoba.iml" filepath="$PROJECT_DIR$/../yuku-android-util/AmbilWarnaDicoba/AmbilWarnaDicoba.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/AndroidCrypto/AndroidCrypto.iml" filepath="$PROJECT_DIR$/../yuku-android-util/AndroidCrypto/AndroidCrypto.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/BintexDemo/BintexDemo.iml" filepath="$PROJECT_DIR$/../yuku-android-util/BintexDemo/BintexDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/BintexReader/BintexReader.iml" filepath="$PROJECT_DIR$/../yuku-android-util/BintexReader/BintexReader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/BintexWriter/BintexWriter.iml" filepath="$PROJECT_DIR$/../yuku-android-util/BintexWriter/BintexWriter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/EasyBilling/EasyBilling.iml" filepath="$PROJECT_DIR$/../yuku-android-util/EasyBilling/EasyBilling.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/FileChooser/FileChooser.iml" filepath="$PROJECT_DIR$/../yuku-android-util/FileChooser/FileChooser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/FileChooserDemo/FileChooserDemo.iml" filepath="$PROJECT_DIR$/../yuku-android-util/FileChooserDemo/FileChooserDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/FlowLayout/FlowLayout.iml" filepath="$PROJECT_DIR$/../yuku-android-util/FlowLayout/FlowLayout.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/GreenDroid/GreenDroid.iml" filepath="$PROJECT_DIR$/../yuku-android-util/GreenDroid/GreenDroid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/HoloEverywhereLib/HoloEverywhereLib.iml" filepath="$PROJECT_DIR$/../yuku-android-util/HoloEverywhereLib/HoloEverywhereLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/IconContextMenu/IconContextMenu.iml" filepath="$PROJECT_DIR$/../yuku-android-util/IconContextMenu/IconContextMenu.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/IconContextMenuDicoba/IconContextMenuDicoba.iml" filepath="$PROJECT_DIR$/../yuku-android-util/IconContextMenuDicoba/IconContextMenuDicoba.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/KirimFidbek/KirimFidbek.iml" filepath="$PROJECT_DIR$/../yuku-android-util/KirimFidbek/KirimFidbek.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/MultiGestureDetector/MultiGestureDetector.iml" filepath="$PROJECT_DIR$/../yuku-android-util/MultiGestureDetector/MultiGestureDetector.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/NewQuickAction3DLib/NewQuickAction3DLib.iml" filepath="$PROJECT_DIR$/../yuku-android-util/NewQuickAction3DLib/NewQuickAction3DLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/Salsa20/Salsa20.iml" filepath="$PROJECT_DIR$/../yuku-android-util/Salsa20/Salsa20.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/Salsa20Demo/Salsa20Demo.iml" filepath="$PROJECT_DIR$/../yuku-android-util/Salsa20Demo/Salsa20Demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/SdkSearchBar/SdkSearchBar.iml" filepath="$PROJECT_DIR$/../yuku-android-util/SdkSearchBar/SdkSearchBar.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/SimpleTrove/SimpleTrove.iml" filepath="$PROJECT_DIR$/../yuku-android-util/SimpleTrove/SimpleTrove.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/Snappy/Snappy.iml" filepath="$PROJECT_DIR$/../yuku-android-util/Snappy/Snappy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/SnappyDemo/SnappyDemo.iml" filepath="$PROJECT_DIR$/../yuku-android-util/SnappyDemo/SnappyDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/TimesSquare/TimesSquare.iml" filepath="$PROJECT_DIR$/../yuku-android-util/TimesSquare/TimesSquare.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../yuku-android-util/google-play-services_lib/google-play-services_lib.iml" filepath="$PROJECT_DIR$/../yuku-android-util/google-play-services_lib/google-play-services_lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/quill-select.iml" filepath="$PROJECT_DIR$/quill-select.iml" />
+    </modules>
+  </component>
+</project>
+
